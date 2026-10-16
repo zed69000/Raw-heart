@@ -1,0 +1,14 @@
+{
+  "name": "Raw Heart",
+  "short_name": "Raw Heart",
+  "description": "Prototype jouable : Déni et Tristesse.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#050606",
+  "theme_color": "#050606",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
