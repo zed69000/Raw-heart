@@ -5,10 +5,12 @@ Prototype jouable (Déni et Tristesse), à ouvrir dans un navigateur. Site stati
 - Ordinateur : clavier et souris, casque recommandé.
 - Téléphone : à l'horizontale ; le bouton Plein écran du titre masque les barres du navigateur. « Ajouter à l'écran d'accueil » l'ouvre en plein écran et en paysage.
 
-## Mise en ligne sur Cloudflare Pages
+## Mise en ligne sur Cloudflare
 
-1. Cloudflare → Workers & Pages → Create → Pages → Connect to Git, puis choisir ce dépôt.
-2. Framework preset : None. Build command : vide. Build output directory : `/`.
-3. Save and Deploy. Chaque push sur `main` redéploie le site.
+Le jeu est servi comme un Worker de fichiers statiques : `wrangler.jsonc` publie le dossier `public/`.
 
-Le fichier `_headers` règle le cache (la page est toujours revérifiée, donc une mise à jour arrive tout de suite) et le type du manifeste.
+1. Cloudflare → Workers & Pages → Create → Import a repository, puis choisir ce dépôt.
+2. Build command : vide. Deploy command : `npx wrangler deploy`.
+3. Deploy. Chaque push sur `main` redéploie le jeu.
+
+Le fichier `public/_headers` règle le cache (la page est toujours revérifiée, donc une mise à jour arrive tout de suite) et le type du manifeste.
