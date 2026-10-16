@@ -87,6 +87,7 @@ kbd{font-family:var(--mono);color:var(--ash);border:1px solid var(--smoke);paddi
 .tb{position:absolute;pointer-events:auto;touch-action:none;width:76px;height:76px;border-radius:50%;padding:0;font-size:.6rem;letter-spacing:.12em;color:var(--ash);border:1px solid rgba(207,210,207,.45);background:rgba(5,6,6,.35)}
 .tb.held{background:rgba(179,18,27,.4);border-color:var(--ember)}
 .tb.off{opacity:.2;pointer-events:none}
+.tb.gone,.stick.gone,#lookZone.gone{display:none}
 #tAct{right:calc(26px + env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 #tFlare{--p:1;right:calc(118px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));background:conic-gradient(rgba(179,18,27,.45) calc(var(--p) * 1turn),rgba(5,6,6,.35) 0)}
 #tHide{right:calc(34px + env(safe-area-inset-right,0px));bottom:calc(122px + env(safe-area-inset-bottom,0px))}
@@ -95,6 +96,17 @@ kbd{font-family:var(--mono);color:var(--ash);border:1px solid var(--smoke);paddi
 body.touch #subs{bottom:30%}
 body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
 #interlude{background:#000;gap:1.1rem}
+@media (max-height:520px){
+  .page{max-width:min(60rem,100%);display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-areas:"k o" "t o" "b o" "b c";column-gap:1.6rem;row-gap:.4rem;padding:1rem 1.3rem;align-items:start}
+  .page .kicker{grid-area:k}
+  .page h2{grid-area:t;font-size:1.5rem}
+  .page #cardBody{grid-area:b;min-height:0;gap:.45rem}
+  .page #cardBody p{font-size:.95rem;line-height:1.35}
+  .page .objective{grid-area:o;border-top:0;border-left:1px solid var(--ink-soft);padding:0 0 0 1rem;font-size:.72rem;line-height:1.5}
+  .page .cont{grid-area:c;align-self:end}
+  #interlude{gap:.6rem}
+  #interlude p{font-size:1rem}
+}
 .w{opacity:0;transition:opacity .35s}
 .w.on{opacity:1}
 .page .objective,.page .cont{opacity:0;transition:opacity 1s}
@@ -2976,9 +2988,21 @@ function initTouch() {
 }
 function updateTouchUI() {
   if (!TOUCH) return;
+  /* each control shows only while it does something */
   const own = W.heartOwned;
-  $('tFlare').classList.toggle('off', !own); $('tHide').classList.toggle('off', !own);
-  $('tLook').classList.toggle('off', !W.poi);
+  const actNeeded = /<kbd>(E|Espace|Space)<\/kbd>/.test(promptKey);
+  const show = (id, on, code) => {
+    const el = $(id), was = !el.classList.contains('gone');
+    el.classList.toggle('gone', !on);
+    if (was && !on && code) { keys.delete(code); el.classList.remove('held'); }
+  };
+  show('stick', player.canMove);
+  if (!player.canMove && TI.active) { TI.active = false; TI.mx = TI.my = 0; TI.stickId = null; $('stick').firstElementChild.style.transform = ''; }
+  show('lookZone', player.canLook);
+  show('tAct', actNeeded || keys.has('KeyE') && state === 'tristesseIntro', 'KeyE');
+  show('tFlare', own && player.canMove, 'KeyR');
+  show('tHide', own && player.canMove, 'KeyF');
+  show('tLook', !!W.poi && player.canLook, 'KeyV');
   $('tFlare').style.setProperty('--p', (own && D.flareCd > 0 ? 1 - D.flareCd / 20 : 1).toFixed(3));
   $('touch').classList.toggle('dim', !started || ended);
 }
