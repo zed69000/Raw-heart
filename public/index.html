@@ -105,6 +105,16 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   .page .objective{grid-area:o;border-top:0;border-left:1px solid var(--ink-soft);padding:0 0 0 1rem;font-size:.72rem;line-height:1.5}
   .page .cont{grid-area:c;align-self:end}
   #interlude{gap:.6rem}
+  #title{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"k keys" "h keys" "t keys" "t row" "t start" "t note";column-gap:2rem;row-gap:.55rem;align-content:center;justify-items:center;text-align:center}
+  #title .kicker{grid-area:k;align-self:end}
+  #title h1{grid-area:h;font-size:clamp(2rem,7vh,3rem)}
+  #title .thesis{grid-area:t;font-size:.95rem;align-self:start}
+  #title .keys{grid-area:keys;font-size:.66rem;gap:.25rem .9rem;align-self:end}
+  #title .row{grid-area:row;gap:.5rem}
+  #title #start{grid-area:start;padding:.55rem 1.8rem}
+  #title .note{grid-area:note;font-size:.62rem}
+  #end h1{font-size:clamp(2rem,9vh,3.2rem)}
+  .overlay{gap:.8rem}
   #interlude p{font-size:1rem}
 }
 .w{opacity:0;transition:opacity .35s}
@@ -3022,7 +3032,7 @@ function applyStaticTexts() {
   $('title').querySelector('.kicker').textContent = loc('title.kicker');
   $('title').querySelector('.thesis').textContent = loc('title.thesis');
   $('start').textContent = loc('title.start');
-  $('note').textContent = loc('title.note');
+  $('note').textContent = TOUCH ? loc('title.note').split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.') : loc('title.note');
   const rows = TOUCH
     ? [['Stick', desc('keys.move')], [loc('touch.act'), desc('keys.act')], [loc('touch.look'), desc('keys.focus')], [loc('touch.flare'), desc('keys.flare')], [loc('touch.hide'), desc('keys.hide')]]
     : ['keys.move', 'keys.look', 'keys.run', 'keys.act', 'keys.focus', 'keys.flare', 'keys.hide'].map(k => [head(k), desc(k)]);
