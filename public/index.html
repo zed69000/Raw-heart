@@ -576,7 +576,7 @@ function initAudio() {
   S.send = g(1, S.rev);
   S.world.connect(g(0.15, S.rev));
   S.heartLP = biq('lowpass', 900, 0.7); S.heartLP.connect(S.master);
-  S.heart = g(1, S.heartLP);
+  S.heart = g(2.2, S.heartLP);
   S.ui = g(1, S.master); S.ui.connect(S.send);
   S.music = g(0.9, S.master); S.music.connect(g(0.55, S.rev));
 
@@ -1492,6 +1492,53 @@ const girl = (() => {
   return { gp, mat, op: 0, active: false, x: 0, z: 0, dx: 0, dz: 0, t: 0 };
 })();
 
+/* Ghost shapes from the concept board: a tall sheet, a small round ghost and a flat crawler with spikes.
+   All share the vaporous material, so the ink pass draws their contour and their red eyes carry through the fog. */
+function ghostLathe(profile, segs = 28) { return new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), segs); }
+function raggedHem(geo, yMax, amp) {
+  const pa = geo.attributes.position;
+  for (let i = 0; i < pa.count; i++) {
+    const y = pa.getY(i);
+    if (y < yMax) { const a = Math.atan2(pa.getZ(i), pa.getX(i)); pa.setY(i, y - amp * (0.5 + 0.5 * Math.sin(a * 7)) * (1 - y / yMax)); }
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+function makeGhost(kind, mat = M.creature) {
+  const gp = new THREE.Group(), body = new THREE.Group(); gp.add(body);
+  let eyeY, eyeZ, eyeX, eyeR;
+  if (kind === 'tall') {
+    body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.5, 0], [0.47, 0.6], [0.43, 1.6], [0.42, 2.3], [0.38, 2.6], [0.28, 2.85], [0.12, 2.98], [0, 3.0]]), 0.3, 0.25), mat));
+    eyeY = 2.62; eyeZ = 0.37; eyeX = 0.12; eyeR = 0.045;
+  } else if (kind === 'blob') {
+    body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.62, 0], [0.62, 0.35], [0.56, 0.7], [0.42, 0.95], [0.22, 1.1], [0, 1.15]]), 0.2, 0.12), mat));
+    eyeY = 0.74; eyeZ = 0.5; eyeX = 0.16; eyeR = 0.05;
+  } else {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), mat); s.scale.set(1.0, 0.36, 0.8); s.position.y = 0.3; body.add(s);
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), mat); shell.scale.set(0.62, 0.3, 0.55); shell.position.set(0, 0.48, 0.05); body.add(shell);
+    for (const [x, z, ry] of [[-1, -0.2, 0.4], [-0.95, 0.35, -0.2], [1, -0.2, -0.4], [0.95, 0.35, 0.2], [-0.7, -0.6, 0.8], [0.7, -0.6, -0.8]]) {
+      const c = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 5), mat); c.position.set(x * 1.05, 0.32, z); c.rotation.set(0.2, ry, x > 0 ? -0.9 : 0.9); body.add(c);
+    }
+    eyeY = 0.56; eyeZ = 0.52; eyeX = 0.2; eyeR = 0.06;
+  }
+  const eyes = [], glows = [];
+  for (const sx of [-1, 1]) {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(eyeR, 8, 6), M.eye); e.position.set(sx * eyeX, eyeY, eyeZ); body.add(e); eyes.push(e);
+    const gl = glowSprite(eyeR * 9, 0xff3a28, 0); gl.position.set(sx * eyeX, eyeY, eyeZ + 0.02); body.add(gl); glows.push(gl);
+  }
+  gp.visible = false; scene.add(gp);
+  return { gp, body, head: body, eyes, glows, kind, eyeY };
+}
+/* hover, sway and breathe; a lunge tips the body forward */
+function ghostPose(h, ph, moving, tilt, lunge = false) {
+  const t = gt;
+  h.body.position.y = h.kind === 'crawler' ? 0 : 0.12 + Math.sin(t * 2.1 + ph) * 0.08;
+  h.body.rotation.z = Math.sin(t * 1.3 + ph) * 0.06 + tilt * 0.25;
+  h.body.rotation.x = lunge ? 0.35 : (moving ? 0.12 : 0);
+  const br = 1 + Math.sin(t * 3 + ph) * 0.04;
+  h.body.scale.set(br * (h.kind === 'crawler' ? 1 + Math.sin(t * 6 + ph) * 0.08 : 1), 1 / br, br);
+}
+
 /* the creature: a tall, hunched figure with dragging arms and a pale mask, posed in stop-motion steps */
 const limbGeo = new THREE.CylinderGeometry(0.03, 0.05, 1, 6).translate(0, 0.5, 0);
 const fingerGeo = new THREE.CylinderGeometry(0.006, 0.013, 1, 4).translate(0, 0.5, 0);
@@ -1547,12 +1594,12 @@ function setEyes(h, v) {
   h.glows.forEach(gl => { gl.material.opacity = 0.85 * v; });
 }
 const C = (() => {
-  const h = makeHumanoid();
+  const h = makeGhost('tall');
   return { gp: h.gp, h, x: 0, z: 0, rx: 0, rz: 0, yaw: 0, ryaw: 0, active: false, mode: 'off', tx: 0, tz: 0, timer: 0, lastX: 0, lastZ: 0, speed: 0,
     huntSpeed: 4.0, patrolSpeed: 1.7, freeze: false, phase: 0, aggressive: false, boothAngle: 0, introduced: false, introDone: false, op: 1,
     snapT: 0, tilt: 0, lastStep: 0, listenT: 0, jump: false };
 })();
-const G = makeHumanoid();
+const G = makeGhost('tall');
 const A = { kind: null, next: 0, t: 0, t2: 0, x: 0, z: 0, look: 0, shown: false, count: 0, humNext: 0 };
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpK = new THREE.Vector3();
@@ -1643,9 +1690,9 @@ const heart = (() => {
   const wrist = new THREE.Mesh(shadeGeo(new THREE.CylinderGeometry(0.02, 0.025, 0.16, 18).rotateX(Math.PI / 2).translate(0, 0, 0.08), skinAt), skinMat);
   wrist.position.set(0.012, -0.082, 0.0); wrist.rotation.set(-0.5, 0.45, 0); gp.add(wrist);
 
-  const light = new THREE.PointLight(0xffe4dc, 0, 15, 1.25); light.position.set(0, 0.12, -0.25); gp.add(light);
+  const light = new THREE.PointLight(0xffe4dc, 0, 6, 1.4); light.position.set(0, 0.12, -0.25); gp.add(light);
   gp.visible = false; camera.add(gp);
-  return { gp, core, mat, light, shown: false, hidden: false, k: 0, base: 22 };
+  return { gp, core, mat, light, shown: false, hidden: false, k: 0, base: 5 };
 })();
 
 /* the orienteering compass in the left hand: its needle points at the next beacon, its dial keeps north */
@@ -2498,9 +2545,9 @@ function updateCreature(dt) {
 }
 function animateCreature(dt, speed) {
   if (C.jump) {
-    C.gp.position.set(C.rx, player.y + player.eye - 2.88, C.rz);
+    C.gp.position.set(C.rx, player.y + player.eye - C.h.eyeY * C.gp.scale.y, C.rz);
     C.gp.rotation.y = C.ryaw;
-    poseHumanoid(C.h, 0, 0, 0.35, 1);
+    ghostPose(C.h, 0, false, 0.35, true);
     setEyes(C.h, 1);
     return;
   }
@@ -2513,9 +2560,10 @@ function animateCreature(dt, speed) {
     C.phase += (moving ? (hunting ? 1.0 : 0.6) : 0.05) * mr(0.6, 1.4);
     if (Math.random() < (moving ? 0.1 : 0.25)) { C.tilt = mr(-0.75, 0.75); if (AC && C.op > 0.5 && !C.freeze) bones(AC.currentTime); }
     const st = Math.floor(C.phase / Math.PI);
-    if (st !== C.lastStep && moving) { C.lastStep = st; if (AC && !C.freeze) heavyStep(AC.currentTime, (hunting ? 0.9 : 0.5) * C.op, S.cPan); }
-    poseHumanoid(C.h, C.phase, moving ? 1 : 0, C.tilt);
+    if (st !== C.lastStep && moving) C.lastStep = st;
   }
+  C.gp.scale.setScalar(1 + 0.2 * Math.min(W.fragIndex, 3));
+  ghostPose(C.h, C.phase, moving, C.tilt, hunting && Math.hypot(player.x - C.x, player.z - C.z) < 7);
   C.gp.position.set(C.rx, groundH(C.rx, C.rz), C.rz);
   C.gp.rotation.y = C.ryaw;
   const d = Math.hypot(player.x - C.x, player.z - C.z);
@@ -2528,7 +2576,7 @@ function placeGhost(x, z, faceX, faceZ) {
   A.x = x; A.z = z;
   G.gp.position.set(x, groundH(x, z), z);
   G.gp.rotation.y = Math.atan2(faceX - x, faceZ - z);
-  poseHumanoid(G, 0, 0, mr(-0.6, 0.6));
+  ghostPose(G, 0, false, mr(-0.6, 0.6));
 }
 function startApparition(kind) {
   A.kind = kind; A.t = 0; A.t2 = 0; A.look = 0; A.shown = false; A.count++;
@@ -2667,16 +2715,142 @@ function directorUpdate(dt) {
 /* The heart flare: a burst of light that drives the creature back into the dark, then needs time to recharge. */
 function flare() {
   if (!W.heartOwned || D.flareCd > 0 || busy || heart.hidden) return;
-  D.flareCd = 20; D.flareT = 0.9;
-  P.uFlashColor.value.setRGB(0.95, 0.85, 0.75); fx.flash = 0.45; tween(fx, 'flash', 0, 0.9);
-  if (AC) { thump(AC.currentTime, 0.6, 70, S.world, 0.5); burst(AC.currentTime, { dur: 0.8, amp: 0.2, freq: 700, Q: 0.7, attack: 0.05 }); musicBox(AC.currentTime + 0.05, 81, 0.12, S.ui); }
-  if (C.active && !C.gone && Math.hypot(C.x - player.x, C.z - player.z) < 16) {
-    C.gone = true; C.goneT = 999;
+  D.flareMax = [12, 9, 6.5, 5][Math.min(W.fragIndex, 3)]; D.flareCd = D.flareMax; D.flareT = 0.9;
+  FL.t = 0; FL.hitC = false; W.hitstop = 0.12;
+  P.uFlashColor.value.setRGB(1, 0.92, 0.8); fx.flash = 0.75; tween(fx, 'flash', 0, 0.7);
+  fx.aberr = 1.2; tween(fx, 'aberr', 0, 0.6);
+  player.shake = 1.4; tween(player, 'shake', 0, 0.7);
+  if (AC) {
+    const t0 = AC.currentTime;
+    thump(t0, 1, 48, S.world, 1.2); thump(t0, 0.8, 90, S.world, 0.4);
+    burst(t0, { dur: 1.4, amp: 0.5, type: 'lowpass', freq: 240, buf: S.brown });
+    burst(t0 + 0.02, { dur: 0.9, amp: 0.28, freq: 1400, Q: 0.6, attack: 0.02 });
+    musicBox(t0 + 0.05, 81, 0.14, S.ui); musicBox(t0 + 0.12, 88, 0.08, S.ui);
+  }
+  setTimeout(() => { if (AC && W.heartOwned) musicBox(AC.currentTime, 76, 0.08, S.ui); }, D.flareMax * 1000);
+}
+
+/* ---------- swarm, fear and the heart's blast ---------- */
+/* Small ghosts drift in packs during build-up and peaks; crawlers lurk on the way to the next beacon and lunge.
+   Each touch raises fear; full fear sends you back to the last memory. The blast is the only weapon. */
+const SWARM = [];
+for (let i = 0; i < 8; i++) SWARM.push({ h: makeGhost('blob', smokeMat(0x433d35, 1.25)), kind: 'blob', active: false });
+for (let i = 0; i < 4; i++) SWARM.push({ h: makeGhost('crawler', smokeMat(0x3d3730, 1.3)), kind: 'crawler', active: false });
+const SW = { nextSpawn: 0, fear: 0 };
+const growth = () => 1 + 0.22 * Math.min(W.fragIndex, 3);
+function swarmMax() { return W.finalOn ? 6 : 2 + W.fragIndex * 2; }
+function spawnEnemy(kind, ang, dist) {
+  const e = SWARM.find(s => !s.active && s.kind === kind); if (!e) return;
+  const a = ang ?? mr(0, Math.PI * 2), d = dist ?? mr(16, 24);
+  const x = clamp(player.x + Math.sin(a) * d, -46, 46), z = clamp(player.z + Math.cos(a) * d, -280, -118);
+  if (inLight(x, z, 2)) return;
+  Object.assign(e, { active: true, x, z, yaw: 0, phase: mr(0, 6), op: 0, dying: 0, vx: 0, vz: 0, ashed: false, cried: false, lunge: false, wob: 0,
+    scale: (kind === 'crawler' ? 0.9 : 0.8) * growth() });
+  e.h.gp.visible = true; e.h.gp.scale.setScalar(e.scale); setEyes(e.h, 1);
+  ashBurst(x, groundH(x, z) + 0.2, z, 50, 0.8, 1.2);
+}
+function killEnemy(e, push) {
+  if (e.dying) return;
+  e.dying = 0.001;
+  if (push) { const dx = e.x - player.x, dz = e.z - player.z, d = Math.hypot(dx, dz) || 1; e.vx = dx / d * 9; e.vz = dz / d * 9; }
+  if (AC) burst(AC.currentTime, { dur: 0.3, amp: 0.2, freq: 500, Q: 1 });
+}
+function hurt(a) {
+  SW.fear += a;
+  player.shake = Math.max(player.shake, 0.9); tween(player, 'shake', 0, 0.5);
+  P.uFlashColor.value.setRGB(0.45, 0, 0); fx.flash = 0.35; tween(fx, 'flash', 0, 0.6);
+  if (AC) { scream(AC.currentTime); thump(AC.currentTime, 0.8, 45, S.world, 0.4); }
+  if (SW.fear >= 1) overwhelmed();
+}
+async function overwhelmed() {
+  if (busy) return; busy = true; player.canMove = false;
+  await tween(fx, 'fade', 1, 0.6);
+  await wait(1.2);
+  const cp = W.checkpoint;
+  player.x = cp.x; player.z = cp.z; player.yaw = cp.yaw; player.pitch = 0; player.vx = player.vz = 0;
+  SW.fear = 0;
+  for (const e of SWARM) { e.active = false; e.h.gp.visible = false; }
+  toPhase('relax');
+  await wait(0.5);
+  tween(fx, 'fade', 0, 1.4);
+  player.canMove = true; busy = false;
+}
+function updateSwarm(dt) {
+  const playing = state === 'tristesse' || state === 'final';
+  if (playing && C.introDone && (D.phase === 'build' || D.phase === 'peak') && !W.memory && !busy && !W.inRefuge && gt > SW.nextSpawn) {
+    const blobs = SWARM.filter(e => e.active && !e.dying && e.kind === 'blob').length;
+    if (blobs < swarmMax()) for (let i = 0; i < (D.phase === 'peak' ? 2 : 1); i++) spawnEnemy('blob');
+    if (W.fragIndex >= 1 && !SWARM.some(e => e.active && e.kind === 'crawler')) {
+      const t = currentTarget();
+      spawnEnemy('crawler', Math.atan2(t.x - player.x, t.z - player.z) + mr(-0.4, 0.4), mr(12, 16));
+    }
+    SW.nextSpawn = gt + (D.phase === 'peak' ? mr(3, 5) : mr(6, 10));
+  }
+  if (playing && D.phase === 'relax') for (const e of SWARM) if (e.active && !e.dying) killEnemy(e, false);
+  for (const e of SWARM) {
+    if (!e.active) continue;
+    const gp = e.h.gp;
+    if (e.dying) {
+      e.dying += dt; e.x += e.vx * dt; e.z += e.vz * dt; e.vx *= 0.9; e.vz *= 0.9;
+      e.op = Math.max(0, 1 - e.dying / 0.35);
+      if (e.dying > 0.15 && !e.ashed) { e.ashed = true; ashBurst(e.x, groundH(e.x, e.z) + 0.3, e.z, 110, 1.2 * e.scale, 1.6 * e.scale); }
+      if (e.dying > 0.4) { e.active = false; gp.visible = false; continue; }
+    } else {
+      e.op = Math.min(1, e.op + dt * 1.5);
+      const dx = player.x - e.x, dz = player.z - e.z, d = Math.hypot(dx, dz) || 1;
+      if (e.kind === 'blob') {
+        const sp = (!heart.hidden || d < 5) ? 1.3 + 0.25 * W.fragIndex : 0.4;
+        e.wob += dt;
+        const side = Math.sin(e.wob * 1.7 + e.phase) * 0.6;
+        e.x += (dx / d * sp - dz / d * side) * dt; e.z += (dz / d * sp + dx / d * side) * dt;
+        e.lunge = false;
+      } else {
+        e.lunge = d < 9 + W.fragIndex;
+        const sp = e.lunge ? 4.0 + 0.4 * W.fragIndex : 0.5;
+        e.x += dx / d * sp * dt; e.z += dz / d * sp * dt;
+        if (e.lunge && !e.cried && AC) { e.cried = true; rasp(AC.currentTime, S.world); }
+      }
+      if (inLight(e.x, e.z, 1)) killEnemy(e, false);
+      e.yaw = Math.atan2(dx, dz);
+      const reach = (e.kind === 'crawler' ? 0.9 : 0.7) * e.scale + 0.35;
+      if (d < reach && !busy && !W.inRefuge) { killEnemy(e, false); hurt(e.kind === 'crawler' ? 0.45 : 0.3); }
+      W.danger = Math.max(W.danger || 0, 1 - smooth(3, 16, d));
+    }
+    gp.position.set(e.x, groundH(e.x, e.z), e.z); gp.rotation.y = e.yaw;
+    ghostPose(e.h, e.phase, true, 0, e.lunge);
+    for (const m of e.h.body.children) if (m.material && m.material.uniforms) m.material.uniforms.uOp.value = (e.kind === 'crawler' ? 1.3 : 1.25) * e.op;
+    for (const g of e.h.glows) g.material.opacity = 0.85 * e.op;
+  }
+  SW.fear = Math.max(0, SW.fear - dt * (W.inRefuge ? 0.35 : 0.06));
+}
+
+/* The blast: a shockwave of light from the heart out to its full radius, with a hitstop, a hard shake and a deep boom. */
+const FL = { t: -1, R: 16, hitC: false };
+const flareShell = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 20), new THREE.ShaderMaterial({
+  uniforms: { uOp: { value: 0 } }, vertexShader: SHAFT_V,
+  fragmentShader: `uniform float uOp; varying vec2 vUv; varying float vF; void main(){ float rim = pow(1.0 - vF, 2.5); gl_FragColor = vec4(vec3(1.0, 0.86, 0.72) * (rim * 1.6 + 0.08) * uOp, 1.0); }`,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+flareShell.visible = false; scene.add(flareShell);
+const ringTex = radialTex([[0, 'rgba(255,255,255,0)'], [0.76, 'rgba(255,255,255,0)'], [0.9, 'rgba(255,255,255,0.95)'], [1, 'rgba(255,255,255,0)']], 256);
+const flareRing = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: ringTex, color: 0xffe2c4, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+flareRing.rotation.x = -Math.PI / 2; flareRing.visible = false; scene.add(flareRing);
+const flareLight = new THREE.PointLight(0xffe2c8, 0, 1, 1.2); scene.add(flareLight);
+function updateFlareFx(dt) {
+  if (FL.t < 0) { flareShell.visible = flareRing.visible = false; flareLight.intensity = 0; return; }
+  FL.t += dt;
+  const k = Math.min(1, FL.t / 0.45), r = FL.R * (1 - Math.pow(1 - k, 3)), o = Math.max(0, 1 - FL.t / 0.7);
+  flareShell.visible = flareRing.visible = true;
+  flareShell.position.set(player.x, player.y + 1.2, player.z); flareShell.scale.setScalar(Math.max(0.1, r)); flareShell.material.uniforms.uOp.value = o;
+  flareRing.position.set(player.x, groundH(player.x, player.z) + 0.08, player.z); flareRing.scale.setScalar(Math.max(0.1, r * 2.1)); flareRing.material.opacity = o;
+  flareLight.position.set(player.x, player.y + 1.5, player.z); flareLight.intensity = 50 * o; flareLight.distance = r * 1.4 + 1;
+  if (!FL.hitC && C.active && !C.gone && Math.hypot(C.x - player.x, C.z - player.z) < r) {
+    FL.hitC = true; C.gone = true; C.goneT = 999;
     if (AC) { sting(AC.currentTime, 0.3); rasp(AC.currentTime + 0.1); }
     D.intensity = clamp(D.intensity - 0.2, 0, 1);
     if (D.phase === 'build' || D.phase === 'peak') toPhase('fade');
   }
-  setTimeout(() => { if (AC && W.heartOwned) musicBox(AC.currentTime, 76, 0.08, S.ui); }, 20000);
+  for (const e of SWARM) if (e.active && !e.dying && Math.hypot(e.x - player.x, e.z - player.z) < r) killEnemy(e, true);
+  if (FL.t > 0.75) FL.t = -1;
 }
 
 function updateTristesse(dt) {
@@ -2750,15 +2924,15 @@ function updateTristesse(dt) {
     if (Math.hypot(player.x - 1.5, player.z - LAMP2_Z) < 5 && !busy) finishTristesse();
   }
 
-  const target = W.memory ? 52 : lerp(64 + 95 * W.danger + 18 * D.build + (D.tele ? 25 : 0), 56, W.calm);
+  const target = W.memory ? 52 : lerp(64 + 95 * W.danger + 18 * D.build + (D.tele ? 25 : 0) + 45 * SW.fear, 56, W.calm);
   H.bpm = damp(H.bpm, target, 2.5, dt);
   H.jitter = 0.03 + 0.35 * W.danger;
-  H.amp = 0.32 + 0.5 * W.danger;
+  H.amp = 0.5 + 0.45 * Math.max(W.danger, SW.fear);
   if (!W.finalOn) {
-    fx.tunnel = damp(fx.tunnel, (0.06 + 0.35 * W.danger) * (1 - 0.8 * W.calm), 3, dt);
+    fx.tunnel = damp(fx.tunnel, (0.06 + 0.35 * W.danger + 0.35 * SW.fear) * (1 - 0.8 * W.calm), 3, dt);
     W.whisper = damp(W.whisper, W.memory ? 0 : (0.05 + 0.3 * W.danger) * (1 - W.calm), 2, dt);
   }
-  fx.red = damp(fx.red, (0.03 + 0.4 * W.danger) * (1 - W.calm), 3, dt);
+  fx.red = damp(fx.red, (0.03 + 0.4 * W.danger) * (1 - W.calm) + 0.5 * SW.fear, 3, dt);
   if (!W.done2) {
     const hid = heart._h ?? 0;
     const fin = W.finalOn ? clamp(W.finalT / 50, 0, 1) : 0;
@@ -2911,6 +3085,8 @@ function updateWorld(dt) {
   if (state === 'final' || W.done2) quay2.set(quay2.level);
   updateGirl(dt);
   updateCreature(dt);
+  updateSwarm(dt);
+  updateFlareFx(dt);
   C.gp.traverse(o => { if (o.material === M.creature || o.material === maskMat) o.visible = C.op > 0.05; });
   updateHeartModel(dt);
   updateCompass(dt);
@@ -2926,7 +3102,8 @@ function updateWorld(dt) {
 let last = performance.now();
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  let dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (W.hitstop > 0) { W.hitstop -= dt; dt *= 0.15; }
   if (started && !paused) {
     gt += dt; W._dt = dt;
     updateTweens(dt);
@@ -3013,7 +3190,7 @@ function updateTouchUI() {
   show('tFlare', own && player.canMove, 'KeyR');
   show('tHide', own && player.canMove, 'KeyF');
   show('tLook', !!W.poi && player.canLook, 'KeyV');
-  $('tFlare').style.setProperty('--p', (own && D.flareCd > 0 ? 1 - D.flareCd / 20 : 1).toFixed(3));
+  $('tFlare').style.setProperty('--p', (own && D.flareCd > 0 ? 1 - D.flareCd / (D.flareMax || 12) : 1).toFixed(3));
   $('touch').classList.toggle('dim', !started || ended);
 }
 if (TOUCH) initTouch();
@@ -3075,7 +3252,7 @@ $('start').addEventListener('click', async () => {
 });
 $('again').addEventListener('click', () => location.reload());
 
-window.__rh = { giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
+window.__rh = { SWARM, SW, FL, spawnEnemy, giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
 </script>
 
 </body>
