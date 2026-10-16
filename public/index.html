@@ -54,6 +54,7 @@ h1 .dot{width:.16em;height:.16em;border-radius:50%;background:var(--ember);box-s
 button{font-family:var(--mono);font-size:.85rem;letter-spacing:.3em;text-transform:uppercase;color:var(--ash);background:transparent;border:1px solid var(--smoke);padding:.8rem 2.2rem;cursor:pointer}
 button:hover,button:focus-visible{border-color:var(--ash);outline:none;box-shadow:0 0 0 1px var(--ash)}
 .note{font-size:.72rem;color:var(--smoke);margin:0;max-width:44ch}
+#title .ver{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));margin:0;font-family:var(--mono,monospace);font-size:.62rem;letter-spacing:.08em;color:var(--smoke);opacity:.8}
 .row{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:center}
 .lang{display:flex;gap:.6rem;align-items:center;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--smoke)}
 .lang select{font-family:var(--mono);font-size:.8rem;color:var(--ash);background:var(--void);border:1px solid var(--smoke);padding:.45rem .6rem}
@@ -164,6 +165,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
+  <p class="ver" id="ver">v16 · 16.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
