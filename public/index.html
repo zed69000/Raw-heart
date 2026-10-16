@@ -209,7 +209,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
 /* ---------- languages ---------- */
 /* Texts come from the "Raw Heart — Textes du jeu" doc (one tab per language), keyed by the doc's IDs. */
-const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : Lou, ma fille de six ans, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. C’est le déni.","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai en passant de halo en halo. La lumière te protège, le noir t’engloutit.","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos courses d’orientation, avec Lou. Elle n’indique pas le nord : elle indique la lumière.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté, le petit lit est fait. Personne n’y a dormi.","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Mon cœur cogne si fort qu’il m’étouffe. Si je le garde en moi, il va me briser.","tristesse.p2":"Alors je vais l’arracher. Dans ma main, il deviendra une lanterne, et il me préviendra quand le monstre approche.","tristesse.obj":"Retrouve trois souvenirs de Lou. La boussole indique la balise suivante. Les halos de lumière sont des refuges : le monstre ne peut pas y entrer. Rallume les cabines éteintes avec le cœur (E maintenu) pour en créer d’autres. Clic gauche ou R : faire jaillir la lumière du cœur pour repousser le monstre, puis il doit se recharger. Clic droit ou F : serrer le cœur contre toi pour te faire discret.","heart.1":"Il cogne si fort qu’il va me briser.","heart.2":"Si je le garde, il m’étouffe. Alors je l’arrache.","heart.prompt":"Maintenir <kbd>E</kbd> : arracher le cœur","heart.3":"Aucune douleur. Il bat dans ma main, et il éclaire.","heart.4":"Il s’affolera quand le monstre approchera.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose approche. Vite, la lumière de la cabine !","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Cacher","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue"},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: Lou, my six-year-old daughter, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. That's denial.","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, going from halo to halo. Light protects you; darkness swallows you.","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our orienteering races, Lou and me. It doesn’t point north: it points to the light.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room, the little bed is made. No one has slept in it.","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"My heart pounds so hard it’s choking me. If I keep it inside, it will break me.","tristesse.p2":"So I’ll tear it out. In my hand it will become a lantern, and it will warn me when the monster comes near.","tristesse.obj":"Find three memories of Lou. The compass points to the next beacon. Halos of light are safe havens: the monster cannot enter them. Relight dark phone booths with your heart (hold E) to make new ones. Left click or R: make your heart flare to drive the monster back; it then needs to recharge. Right click or F: hold your heart close to stay unseen.","heart.1":"It’s pounding so hard it will break me.","heart.2":"If I keep it, it chokes me. So I tear it out.","heart.prompt":"Hold <kbd>E</kbd>: tear out your heart","heart.3":"No pain. It beats in my hand, and it gives light.","heart.4":"It will race when the monster comes near.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something is coming. Quick, the light of the booth!","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Hide","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language"}};
+const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lum...","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Mon cœur cogne si fort qu’il m’étouffe. Si je le garde en moi, il va me briser.","tristesse.p2":"Alors je vais l’arracher. Dans ma main, il deviendra une lanterne, et il me préviendra quand le monstre approche.","tristesse.obj":"Retrouve trois souvenirs de Lou. La boussole indique la balise suivante. Les halos de lumière sont des refuges : le monstre ne peut pas y entrer. Rallume les cabines éteintes avec le cœur (E maintenu) pour en créer d’autres. Clic gauche ou R : faire jaillir la lumière du cœur pour repousser le monstre, puis il doit se recharger. Clic droit ou F : serrer le cœur contre toi pour te faire discret.","heart.1":"Il cogne si fort qu’il va me briser.","heart.2":"Si je le garde, il m’étouffe. Alors je l’arrache.","heart.prompt":"Maintenir <kbd>E</kbd> : arracher le cœur","heart.3":"Aucune douleur. Il bat dans ma main, et il éclaire.","heart.4":"Il s’affolera quand le monstre approchera.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose approche. Vite, la lumière de la cabine !","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Cacher","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue"},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: Lou, my six-year-old daughter, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. That's denial.","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, going from halo to halo. Light protects you; darkness swallows you.","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our orienteering races, Lou and me. It doesn’t point north: it points to the light.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room, the little bed is made. No one has slept in it.","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"My heart pounds so hard it’s choking me. If I keep it inside, it will break me.","tristesse.p2":"So I’ll tear it out. In my hand it will become a lantern, and it will warn me when the monster comes near.","tristesse.obj":"Find three memories of Lou. The compass points to the next beacon. Halos of light are safe havens: the monster cannot enter them. Relight dark phone booths with your heart (hold E) to make new ones. Left click or R: make your heart flare to drive the monster back; it then needs to recharge. Right click or F: hold your heart close to stay unseen.","heart.1":"It’s pounding so hard it will break me.","heart.2":"If I keep it, it chokes me. So I tear it out.","heart.prompt":"Hold <kbd>E</kbd>: tear out your heart","heart.3":"No pain. It beats in my hand, and it gives light.","heart.4":"It will race when the monster comes near.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something is coming. Quick, the light of the booth!","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Hide","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language"}};
 const LANGS = [['fr', 'Français'], ['en', 'English']];
 const VLANG = { fr: 'fr-FR', en: 'en-US', de: 'de-DE', es: 'es-ES', it: 'it-IT', pt: 'pt-BR', pl: 'pl-PL', ru: 'ru-RU', ja: 'ja-JP', ko: 'ko-KR', zh: 'zh-CN', tr: 'tr-TR' };
 let LANG = (() => {
@@ -243,13 +243,29 @@ const postMat = new THREE.ShaderMaterial({
     tDiffuse: { value: rt.texture }, tDepth: { value: rt.depthTexture }, uNear: { value: 0.03 }, uFar: { value: 260 }, uFogD: { value: 0.05 },
     uTime: { value: 0 }, uTunnel: { value: 0 }, uRed: { value: 0 },
     uGrain: { value: 0.085 }, uAberr: { value: 0 }, uFade: { value: 1 }, uFlash: { value: 0 },
-    uFlashColor: { value: new THREE.Color(1, 1, 1) }, uRes: { value: new THREE.Vector2(1, 1) }
+    uFlashColor: { value: new THREE.Color(1, 1, 1) }, uRes: { value: new THREE.Vector2(1, 1) },
+    uInvProj: { value: new THREE.Matrix4() }, uCamW: { value: new THREE.Matrix4() }, uCamPos: { value: new THREE.Vector3() },
+    uVol: { value: 0 }, uVolCol: { value: new THREE.Color() }, uLights: { value: [0, 1, 2, 3, 4, 5].map(() => new THREE.Vector4(0, -100, 0, 0)) },
+    uWall: { value: new THREE.Vector4(-48, 48, -282, -116) }, uWallOn: { value: 0 }
   },
+  defines: { VSTEPS: TOUCH ? 6 : 10 },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
   fragmentShader: `
     uniform sampler2D tDiffuse, tDepth; uniform float uNear, uFar, uFogD;
     uniform float uTime, uTunnel, uRed, uGrain, uAberr, uFade, uFlash;
     uniform vec3 uFlashColor; uniform vec2 uRes; varying vec2 vUv;
+    uniform mat4 uInvProj, uCamW; uniform vec3 uCamPos, uVolCol; uniform float uVol, uWallOn; uniform vec4 uLights[6]; uniform vec4 uWall;
+    float h3(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+    float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),
+                 mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z); }
+    vec3 worldAt(vec2 q, float z){ vec4 v = uInvProj * vec4(q * 2.0 - 1.0, z * 2.0 - 1.0, 1.0); v /= v.w; return (uCamW * v).xyz; }
+    float fogDen(vec3 p){
+      vec3 w = vec3(uTime * 0.25, 0.0, uTime * 0.12);
+      float n = n3(p * 0.14 + w * 0.3) * 0.65 + n3(p * 0.42 - w) * 0.35;
+      return (0.25 + 1.6 * n * n) * exp(-max(p.y, 0.0) * 0.2);
+    }
+    float wallK(vec3 p){ float sd = max(max(uWall.x - p.x, p.x - uWall.y), max(uWall.z - p.z, p.z - uWall.w)); return uWallOn * smoothstep(-11.0, -1.0, sd) * (1.0 - smoothstep(7.0, 13.0, p.y)); }
     float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
     float noise(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
       return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
@@ -273,7 +289,31 @@ const postMat = new THREE.ShaderMaterial({
       col.r = texture2D(tDiffuse, uv + c * ab).r;
       col.g = texture2D(tDiffuse, uv).g;
       col.b = texture2D(tDiffuse, uv - c * ab).b;
-      float red = smoothstep(0.10, 0.32, col.r - max(col.g, col.b));
+      float red = smoothstep(0.10, 0.32, col.r - max(col.g, col.b)) * (1.0 - smoothstep(0.3, 0.55, col.g / max(col.r, 0.001)));
+      float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
+      float colK = 1.0 - smoothstep(0.55, 0.9, texture2D(tDiffuse, uv).a);
+      vec3 colRaw = col;
+      if (uVol > 0.0) {
+        float zr = texture2D(tDepth, uv).x;
+        vec3 wp = worldAt(uv, zr);
+        vec3 rd = wp - uCamPos; float L = length(rd); rd /= max(L, 1e-4); L = min(L, 70.0);
+        float stp = L / float(VSTEPS);
+        float jit = hash(gl_FragCoord.xy + fract(uTime * 3.7) * 61.0);
+        float T = 1.0; vec3 acc = vec3(0.0);
+        for (int i = 0; i < VSTEPS; i++) {
+          vec3 q = uCamPos + rd * ((float(i) + jit) * stp);
+          float wk = wallK(q);
+          float den = uVol * fogDen(q) + wk * 2.0;
+          vec3 li = uVolCol;
+          for (int k = 0; k < 6; k++) { vec3 dl = uLights[k].xyz - q; li += vec3(0.95, 0.9, 0.82) * uLights[k].w / (1.0 + dot(dl, dl) * 0.3); }
+          li *= 1.0 - wk;
+          float a = 1.0 - exp(-den * stp);
+          acc += T * a * li; T *= 1.0 - a;
+        }
+        float wEnd = wallK(wp);
+        float pierce = max(colK, red * 0.85) * (1.0 - wEnd);
+        col = mix(col * T + acc, colRaw * mix(T, 1.0, 0.8) + acc * 0.4, pierce) * (1.0 - 0.97 * wEnd);
+      }
 
       vec2 o = px * 1.3;
       float d0 = ld(uv);
@@ -301,7 +341,10 @@ const postMat = new THREE.ShaderMaterial({
       paper = mix(paper, vec3(0.8, 0.16, 0.12) * (0.9 + 0.1 * noise(sp * 0.9)), red);
       float tone = smoothstep(0.03, 0.9, l);
       vec3 outc = mix(inkC, paper, tone);
-      outc = mix(outc, inkC, ink * 0.8);
+      vec3 pencil = mix(paper, colRaw / max(max(colRaw.r, max(colRaw.g, colRaw.b)), 0.2) * 0.92, 0.82 * (0.75 + 0.25 * hatch(sp, 0.6, 3.2, 0.45)));
+      outc = mix(outc, pencil * mix(0.55, 1.0, smoothstep(0.0, 0.25, l)), colK);
+      outc = mix(outc, inkC, ink * 0.8 * (1.0 - colK));
+      float glowEye = colK * smoothstep(0.8, 0.95, min(colRaw.r, min(colRaw.g, colRaw.b)));
       outc = mix(outc, inkC * 0.8, edge);
       outc = mix(outc, vec3(l * 0.9, l * 0.25, l * 0.2) + inkC, uRed * 0.5);
 
@@ -312,6 +355,7 @@ const postMat = new THREE.ShaderMaterial({
       outc *= 1.0 - smoothstep(tr - 0.38, tr, d);
       outc += (hash(vUv * uRes + fract(uTime * 7.13) * 91.0) - 0.5) * uGrain * 0.6;
       outc += step(0.9988, hash(floor(vUv * vec2(300.0, 170.0)) + floor(uTime * 11.0))) * 0.1;
+      outc = mix(outc, vec3(1.0, 0.98, 0.93), glowEye);
       outc = mix(outc, uFlashColor, uFlash);
       outc *= 1.0 - uFade;
       gl_FragColor = vec4(outc, 1.0);
@@ -930,7 +974,7 @@ M.stone = new THREE.MeshLambertMaterial({ map: TEX.rock, color: 0x6a6660 });
 M.rail.color.set(0x55524d);
 
 /* Vaporous bodies for every monster: drifting smoke, brighter at the rim. They still write depth, so the ink pass
-   draws a contour around them, and their red eyes carry through the fog from far away. */
+   draws a contour around them, and their glowing white eyes carry through the fog from far away. */
 const smokeTime = { value: 0 };
 function smokeMat(col, op = 1) {
   return new THREE.ShaderMaterial({
@@ -958,7 +1002,7 @@ function smokeMat(col, op = 1) {
   });
 }
 M.creature = smokeMat(0x433d35, 1.25);
-M.eye.color.set(0xff3322);
+M.eye.color.set(0xfffbf2);
 
 function radialTex(stops, size = 128) {
   const c = document.createElement('canvas'); c.width = c.height = size;
@@ -1320,7 +1364,7 @@ const figures = FIGURES.map(([x, z]) => {
   const mat = smokeMat(0x433d35, 1.25);
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 1.1, 4, 8), mat); body.position.y = 0.95; body.scale.set(1, 1, 0.7); gp.add(body);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), mat); head.position.y = 1.78; gp.add(head);
-  const em = new THREE.MeshBasicMaterial({ color: 0xff3322, fog: false, transparent: true });
+  const em = new THREE.MeshBasicMaterial({ color: 0xfffbf2, fog: false, transparent: true });
   for (const ex of [-0.06, 0.06]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.024, 6, 4), em); e.position.set(ex, 1.8, 0.15); gp.add(e); }
   scene.add(gp);
   return { gp, mat, em, op: 1, gone: false };
@@ -1351,37 +1395,44 @@ const booths = BOOTHS.map(([x, z]) => {
 function photoTex() {
   const c = document.createElement('canvas'); c.width = 180; c.height = 130;
   const x = c.getContext('2d');
-  x.fillStyle = '#d9d4c8'; x.fillRect(0, 0, 180, 130);
-  const gr = x.createLinearGradient(0, 0, 0, 120); gr.addColorStop(0, '#a29d93'); gr.addColorStop(1, '#5e5a54');
-  x.fillStyle = gr; x.fillRect(10, 10, 160, 104);
-  x.fillStyle = '#2a2826';
-  x.beginPath(); x.arc(62, 44, 11, 0, 7); x.fill(); x.fillRect(51, 55, 22, 52);
-  x.beginPath(); x.arc(92, 68, 8, 0, 7); x.fill(); x.fillRect(85, 76, 15, 31);
-  x.beginPath(); x.arc(140, 44, 11, 0, 7); x.fill(); x.fillRect(129, 55, 22, 52);
+  x.fillStyle = '#f2ead8'; x.fillRect(0, 0, 180, 130);
+  x.fillStyle = '#3f86e8'; x.fillRect(10, 10, 160, 62);
+  x.fillStyle = '#3cb44a'; x.fillRect(10, 72, 160, 42);
+  x.fillStyle = '#ffd21e'; x.beginPath(); x.arc(150, 26, 10, 0, 7); x.fill();
+  x.fillStyle = '#1f4fb8'; x.beginPath(); x.arc(62, 44, 11, 0, 7); x.fill(); x.fillRect(51, 55, 22, 52);
+  x.fillStyle = '#ffcc12'; x.beginPath(); x.arc(92, 68, 8, 0, 7); x.fill(); x.beginPath(); x.moveTo(84, 104); x.lineTo(100, 104); x.lineTo(96, 76); x.lineTo(88, 76); x.fill();
+  x.fillStyle = '#7b3fd0'; x.beginPath(); x.arc(140, 44, 11, 0, 7); x.fill(); x.fillRect(129, 55, 22, 52);
   x.globalCompositeOperation = 'destination-out';
   x.beginPath(); x.moveTo(122, 0); for (let y = 0; y <= 130; y += 7) x.lineTo(114 + Math.random() * 12, y); x.lineTo(180, 130); x.lineTo(180, 0); x.closePath(); x.fill();
   return new THREE.CanvasTexture(c);
 }
 const frags = FRAGS.map(f => {
   const gp = new THREE.Group(); gp.position.set(f.x, groundH(f.x, f.z), f.z);
-  const pale = new THREE.MeshBasicMaterial({ color: 0x8a8781 });
+  const pale = new THREE.MeshBasicMaterial({ color: 0x2f74ff, fog: false, opacity: 0.5 });
   if (f.kind === 'photo') {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.26), new THREE.MeshBasicMaterial({ map: photoTex(), transparent: true, alphaTest: 0.5, side: THREE.DoubleSide }));
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.26), new THREE.MeshBasicMaterial({ map: photoTex(), alphaTest: 0.25, side: THREE.DoubleSide, fog: false, opacity: 0.5 }));
     m.rotation.set(-Math.PI / 2 + 0.15, 0, 0.4); m.position.y = 0.05; gp.add(m);
   } else if (f.kind === 'watch') {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.016, 8, 24), new THREE.MeshBasicMaterial({ color: 0x6d6a64 })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; gp.add(ring);
-    const face = new THREE.Mesh(new THREE.CircleGeometry(0.06, 20), new THREE.MeshBasicMaterial({ color: 0xc9c5ba })); face.rotation.x = -Math.PI / 2; face.position.y = 0.05; gp.add(face);
-    for (const sz of [-0.13, 0.13]) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.01, 0.12), new THREE.MeshBasicMaterial({ color: 0x2b2522 })); st.position.set(0, 0.03, sz); gp.add(st); }
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.016, 8, 24), new THREE.MeshBasicMaterial({ color: 0xffc81a, fog: false, opacity: 0.5 })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.04; gp.add(ring);
+    const face = new THREE.Mesh(new THREE.CircleGeometry(0.06, 20), new THREE.MeshBasicMaterial({ color: 0xfff4d6, fog: false, opacity: 0.5 })); face.rotation.x = -Math.PI / 2; face.position.y = 0.05; gp.add(face);
+    for (const sz of [-0.13, 0.13]) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.01, 0.12), new THREE.MeshBasicMaterial({ color: 0x1f6fe8, fog: false, opacity: 0.5 })); st.position.set(0, 0.03, sz); gp.add(st); }
   } else {
     const body = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), pale); body.scale.set(1, 1.1, 0.9); body.position.y = 0.1; gp.add(body);
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), pale); head.position.set(0, 0.24, 0.02); gp.add(head);
     for (const ex of [-0.035, 0.035]) { const ear = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.12, 3, 6), pale); ear.position.set(ex, 0.36, 0); ear.rotation.z = ex * 4; gp.add(ear); }
+    const bow = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.012, 6, 12), new THREE.MeshBasicMaterial({ color: 0xffd21e, fog: false, opacity: 0.5 })); bow.position.set(0, 0.19, 0.07); gp.add(bow);
     gp.rotation.z = 1.2; gp.position.y += 0.08;
   }
-  const glow = glowSprite(1.6, 0xdcd6c6, 0.45); glow.position.y = 0.25; gp.add(glow);
+  const glow = glowSprite(1.8, f.kind === 'toy' ? 0x3d86ff : 0xffc828, 0.45); glow.position.y = 0.25; gp.add(glow);
   scene.add(gp);
   return { ...f, gp, glow, taken: false };
 });
+
+/* Memories write a lower alpha into the scene target; the ink pass reads it as the mask for coloured pencil. */
+const memBlend = m => Object.assign(m, { transparent: true, blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.ZeroFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.ZeroFactor });
+/* glowing white eyes use the same mask, so they carry through the fog */
+memBlend(M.eye); figures.forEach(f => memBlend(f.em));
+frags.forEach(f => { f.gp.scale.multiplyScalar(1.6); f.gp.traverse(o => { if (o.isMesh) memBlend(o.material); }); });
 
 /* symbolic places: each memory sits in a lit landmark that doubles as a refuge, plus two landmarks along the escape */
 const SITE_NAMES = [loc('site1.name'), loc('site2.name'), loc('site3.name')];
@@ -1451,8 +1502,8 @@ const sites = frags.map((f, i) => {
   }
   const light = new THREE.PointLight(0xf3e3c4, 5, 13, 1.3); light.position.set(f.x, groundH(f.x, f.z) + 3, f.z); scene.add(light);
   siteLights.push(light);
-  refugeDisc(f.x, f.z, 5.5);
-  return { x: f.x, z: f.z, swing };
+  const disc = refugeDisc(f.x, f.z, 5.5);
+  return { x: f.x, z: f.z, swing, gp, disc };
 });
 booths.forEach((b, i) => { b.disc = refugeDisc(b.x, b.z, 3.2); b.lit = i === 0; });
 
@@ -1480,6 +1531,104 @@ function inLight(x, z, pad = 0) {
   return null;
 }
 
+/* Lights die. Staying in one starts a short countdown; it then flickers and goes out for good,
+   while a lamp wakes farther on toward the next memory and the compass swings to it. */
+const RELAY = [0, 1].map(() => {
+  const gp = new THREE.Group(); gp.visible = false; scene.add(gp);
+  const pole = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.6, 0.2), M.wood); pole.position.y = 2.3; pole.rotation.z = 0.05; gp.add(pole);
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.14, 0.14), M.wood); arm.position.set(0.5, 4.5, 0); gp.add(arm);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.2, 4), M.metal); cap.rotation.y = Math.PI / 4; cap.position.set(0.95, 4.3, 0); gp.add(cap);
+  const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.3, 0.24), new THREE.MeshBasicMaterial({ color: 0xf0e4c8, fog: false })); bulb.position.set(0.95, 4.05, 0); gp.add(bulb);
+  const glow = glowSprite(4.5, 0xefe2c4, 0); glow.position.copy(bulb.position); gp.add(glow);
+  const halo = glowSprite(22, 0xc9c2b2, 0); halo.position.copy(bulb.position); gp.add(halo);
+  const shaft = new THREE.Mesh(new THREE.ConeGeometry(3.0, 4.0, 28, 1, true), shaftMat(0xe6dcc6, 0, 1)); shaft.position.set(0.95, 2.0, 0); gp.add(shaft);
+  const disc = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xe8dcc0 }));
+  disc.rotation.x = -Math.PI / 2; disc.position.set(0.95, 0.06, 0); gp.add(disc);
+  const light = new THREE.PointLight(0xf3e3c4, 0, 14, 1.3); light.position.set(0.95, 3.8, 0); gp.add(light);
+  return { gp, bulb, glow, halo, shaft, disc, light, x: 0, z: 0, on: false, k: 0, flk: 1, reached: false, ref: null };
+});
+REFUGES[0].quay = quay1;
+REFUGES[1].keep = true;
+booths.forEach((b, i) => { REFUGES[2 + i].booth = b; });
+sites.forEach((s, i) => { REFUGES[2 + booths.length + i].site = i; });
+RELAY.forEach(l => { l.ref = { get x() { return l.x; }, get z() { return l.z; }, r: 4.5, on: () => l.on, lamp: l }; REFUGES.push(l.ref); });
+REFUGES.forEach(r => { const on = r.on; r.on = () => !r.dead && on(); r.dwell = 0; r.die = -1; r.flk = 1; });
+
+const dwellMax = () => [7, 6, 5, 4][Math.min(W.fragIndex, 3)];
+function lightVisual(r) {
+  const k = r.dead ? 0 : r.flk;
+  if (r.quay) r.quay.set(0.9 * k);
+  else if (r.booth) r.booth.flk = k;
+  else if (r.site != null) sites[r.site].flk = k;
+  else if (r.lamp) r.lamp.flk = k;
+}
+function lightOut(r) {
+  if (r.booth) { r.booth.lit = false; r.booth.dead = true; }
+  if (r.lamp) r.lamp.on = false;
+  if (AC) { const t = AC.currentTime; burst(t, { dur: 0.12, amp: 0.3, freq: 2600, Q: 2 }); thump(t, 0.45, 70, S.world, 0.3); setG(S.hum, 0, 0.05); }
+  W.whisper += 0.3;
+  setTimeout(relayNext, 900);
+}
+function relayNext() {
+  if (!(state === 'tristesse' || state === 'final') || W.done2) return;
+  const t = currentTarget();
+  const dx = t.x - player.x, dz = t.z - player.z, d = Math.hypot(dx, dz) || 1;
+  if (d < 24) {
+    compass.jolt = 1;
+    if (AC) { placePanner(S.chimePan, t.x, 3, t.z); musicBox(AC.currentTime, 76, 0.14, S.chimePan); }
+    return;
+  }
+  const l = RELAY.find(q => !q.on) || RELAY.reduce((a, b) => (a.placedAt < b.placedAt ? a : b));
+  const L = clamp(d * 0.5, 14, 24);
+  for (let i = 0; i < 20; i++) {
+    const a = Math.atan2(dx, dz) + mr(-0.35, 0.35), dist = L + mr(-2, 2);
+    const x = clamp(player.x + Math.sin(a) * dist, bounds.x0 + 7, bounds.x1 - 7), z = clamp(player.z + Math.cos(a) * dist, bounds.z0 + 7, bounds.z1 - 7);
+    let clear = true;
+    forNear(x, z, c => { if (Math.hypot(c.x - x, c.z - z) < c.r + 1.4) clear = false; });
+    if (clear && !inLight(x, z, 2)) { placeRelay(l, x, z); return; }
+  }
+}
+function placeRelay(l, x, z) {
+  Object.assign(l, { x, z, on: true, reached: false, k: 0, flk: 1, placedAt: gt });
+  Object.assign(l.ref, { dead: false, dwell: 0, die: -1, flk: 1 });
+  l.gp.position.set(x - 0.95, groundH(x, z), z); l.gp.visible = true;
+  compass.jolt = 1;
+  if (AC) {
+    const t = AC.currentTime; placePanner(S.chimePan, x, 3, z);
+    burst(t, { dur: 0.1, amp: 0.6, type: 'lowpass', freq: 1400, dest: S.chimePan });
+    musicBox(t + 0.12, 69, 0.14, S.chimePan); musicBox(t + 0.4, 76, 0.1, S.chimePan);
+  }
+}
+function relayAfterRespawn() {
+  for (const l of RELAY) { l.on = false; l.k = 0; l.gp.visible = false; }
+  relayNext();
+}
+function updateLights(dt) {
+  const play = (state === 'tristesse' || state === 'final') && player.canMove && !busy && !W.memory && !W.done2;
+  for (const r of REFUGES) {
+    if (r.die < 0) continue;
+    r.die += dt;
+    const p = r.die / 2.4;
+    r.flk = Math.random() < 0.2 + 0.65 * p ? mr(0, 0.12) : mr(0.65, 1);
+    if (AC && Math.random() < dt * 9) tick(AC.currentTime);
+    if (r.die > 2.4) { r.die = -1; r.dead = true; r.flk = 0; lightOut(r); }
+    lightVisual(r);
+  }
+  const here = play ? inLight(player.x, player.z) : null;
+  if (here && !here.keep && here.die < 0 && !(here.site != null && !frags[here.site].taken)) {
+    here.dwell += dt;
+    if (here.dwell > dwellMax()) { here.die = 0; if (AC) setG(S.hum, 0.06, 0.1); }
+  }
+  for (const l of RELAY) {
+    l.k = damp(l.k, l.on ? 1 : 0, l.on ? 5 : 12, dt);
+    const k = l.k * (l.on ? l.flk : 0);
+    l.light.intensity = 6 * k; l.glow.material.opacity = 0.85 * k; l.halo.material.opacity = 0.2 * k; l.shaft.material.uniforms.uOp.value = 0.2 * k;
+    l.disc.material.opacity = 0.32 * k; l.bulb.visible = k > 0.05;
+    if (l.on && !l.reached && Math.hypot(player.x - l.x, player.z - l.z) < 4.5) l.reached = true;
+  }
+  W.relay = RELAY.find(l => l.on && !l.reached) || null;
+}
+
 /* the little girl */
 const girl = (() => {
   const gp = new THREE.Group();
@@ -1493,7 +1642,7 @@ const girl = (() => {
 })();
 
 /* Ghost shapes from the concept board: a tall sheet, a small round ghost and a flat crawler with spikes.
-   All share the vaporous material, so the ink pass draws their contour and their red eyes carry through the fog. */
+   All share the vaporous material, so the ink pass draws their contour and their white eyes carry through the fog. */
 function ghostLathe(profile, segs = 28) { return new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), segs); }
 function raggedHem(geo, yMax, amp) {
   const pa = geo.attributes.position;
@@ -1504,39 +1653,69 @@ function raggedHem(geo, yMax, amp) {
   geo.computeVertexNormals();
   return geo;
 }
+/* The torn mouth from the concept board: a dark gap between two rows of jagged teeth, squashed to a line when closed. */
+const mouthGeo = (() => {
+  const P = [[-0.5, 0], [-0.33, -0.38], [-0.17, -0.1], [0, -0.48], [0.17, -0.1], [0.33, -0.38], [0.5, 0],
+    [0.42, -1], [0.26, -0.6], [0.1, -1], [-0.02, -0.6], [-0.14, -1], [-0.28, -0.62], [-0.42, -1]];
+  const s = new THREE.Shape(); s.moveTo(P[0][0], P[0][1]); P.slice(1).forEach(p => s.lineTo(p[0], p[1])); s.closePath();
+  return new THREE.ShapeGeometry(s);
+})();
+const mouthMat = new THREE.MeshBasicMaterial({ color: 0x0c0807, side: THREE.DoubleSide });
+const teethMat = new THREE.MeshBasicMaterial({ color: 0xe6dcc8, side: THREE.DoubleSide });
+const teethGeo = new THREE.PlaneGeometry(0.9, 1).translate(0, -0.5, 0);
 function makeGhost(kind, mat = M.creature) {
   const gp = new THREE.Group(), body = new THREE.Group(); gp.add(body);
-  let eyeY, eyeZ, eyeX, eyeR;
+  let eyeY, eyeZ, eyeX, eyeR, eyeOX = 0, mw, mh, my, mz;
   if (kind === 'tall') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.5, 0], [0.47, 0.6], [0.43, 1.6], [0.42, 2.3], [0.38, 2.6], [0.28, 2.85], [0.12, 2.98], [0, 3.0]]), 0.3, 0.25), mat));
-    eyeY = 2.62; eyeZ = 0.37; eyeX = 0.12; eyeR = 0.045;
+    eyeY = 2.62; eyeZ = 0.37; eyeX = 0.12; eyeR = 0.045; mw = 0.3; mh = 0.4; my = 2.5; mz = 0.4;
   } else if (kind === 'blob') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.62, 0], [0.62, 0.35], [0.56, 0.7], [0.42, 0.95], [0.22, 1.1], [0, 1.15]]), 0.2, 0.12), mat));
-    eyeY = 0.74; eyeZ = 0.5; eyeX = 0.16; eyeR = 0.05;
+    eyeY = 0.74; eyeZ = 0.5; eyeX = 0.16; eyeR = 0.05; mw = 0.3; mh = 0.26; my = 0.62; mz = 0.58;
+  } else if (kind === 'echo') {
+    body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.34, 0], [0.31, 0.8], [0.27, 1.7], [0.24, 2.4], [0.2, 2.7], [0.08, 2.85], [0, 2.9]]), 0.3, 0.3), mat));
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), mat); head.scale.set(1, 1.25, 0.95); head.position.set(0.12, 2.95, 0.04); head.rotation.z = -0.5; body.add(head);
+    for (const sx of [-1, 1]) {
+      const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.11, 1.9, 8).translate(0, -0.95, 0), mat);
+      arm.position.set(sx * 0.24, 2.5, 0); arm.rotation.z = sx * 0.12; body.add(arm);
+    }
+    eyeY = 3.02; eyeZ = 0.24; eyeX = 0.08; eyeR = 0.04; eyeOX = 0.13; mw = 0.15; mh = 0.3; my = 2.9; mz = 0.27;
   } else {
     const s = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), mat); s.scale.set(1.0, 0.36, 0.8); s.position.y = 0.3; body.add(s);
     const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), mat); shell.scale.set(0.62, 0.3, 0.55); shell.position.set(0, 0.48, 0.05); body.add(shell);
     for (const [x, z, ry] of [[-1, -0.2, 0.4], [-0.95, 0.35, -0.2], [1, -0.2, -0.4], [0.95, 0.35, 0.2], [-0.7, -0.6, 0.8], [0.7, -0.6, -0.8]]) {
       const c = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 5), mat); c.position.set(x * 1.05, 0.32, z); c.rotation.set(0.2, ry, x > 0 ? -0.9 : 0.9); body.add(c);
     }
-    eyeY = 0.56; eyeZ = 0.52; eyeX = 0.2; eyeR = 0.06;
+    eyeY = 0.56; eyeZ = 0.6; eyeX = 0.2; eyeR = 0.06; mw = 0.5; mh = 0.2; my = 0.46; mz = 0.7;
   }
   const eyes = [], glows = [];
   for (const sx of [-1, 1]) {
-    const e = new THREE.Mesh(new THREE.SphereGeometry(eyeR, 8, 6), M.eye); e.position.set(sx * eyeX, eyeY, eyeZ); body.add(e); eyes.push(e);
-    const gl = glowSprite(eyeR * 9, 0xff3a28, 0); gl.position.set(sx * eyeX, eyeY, eyeZ + 0.02); body.add(gl); glows.push(gl);
+    const e = new THREE.Mesh(new THREE.SphereGeometry(eyeR, 8, 6), M.eye); e.position.set(eyeOX + sx * eyeX, eyeY, eyeZ); body.add(e); eyes.push(e);
+    const gl = glowSprite(eyeR * 9, 0xfff1d8, 0); gl.position.set(eyeOX + sx * eyeX, eyeY, eyeZ + 0.02); gl.userData.s = eyeR * 9; body.add(gl); glows.push(gl);
   }
+  const mouth = new THREE.Group(); mouth.position.set(eyeOX, my, mz + 0.04); mouth.scale.set(mw, mh * 0.05, 1); body.add(mouth);
+  const teeth = new THREE.Mesh(teethGeo, teethMat); teeth.position.z = -0.006; mouth.add(teeth);
+  mouth.add(new THREE.Mesh(mouthGeo, mouthMat));
   gp.visible = false; scene.add(gp);
-  return { gp, body, head: body, eyes, glows, kind, eyeY };
+  return { gp, body, head: body, eyes, glows, kind, eyeY, mouth, mouthH: mh };
 }
-/* hover, sway and breathe; a lunge tips the body forward */
+/* Eyes and mouth tell the state: half-closed slits while wandering, wide open with the mouth torn open once it has found you. */
+function setFace(h, eye, mouth) {
+  /* eyes keep a minimum apparent size, so eyes far off in the fog stay readable as two white points */
+  const far = Math.max(1, Math.hypot(h.gp.position.x - camera.position.x, h.gp.position.z - camera.position.z) / (6 * h.gp.scale.x));
+  const fe = Math.max(1, far * 0.75);
+  h.eyes.forEach(e => e.scale.set((1 + 0.25 * eye) * fe, clamp(eye, 0.18, 1.4) * fe, fe));
+  h.glows.forEach(gl => gl.scale.setScalar(gl.userData.s * (0.55 + 0.75 * eye) * far));
+  h.mouth.scale.y = h.mouthH * Math.max(0.05, mouth);
+}
+/* hover, sway and breathe; a lunge tips the body forward and the hem drops to slide along the ground */
 function ghostPose(h, ph, moving, tilt, lunge = false) {
   const t = gt;
-  h.body.position.y = h.kind === 'crawler' ? 0 : 0.12 + Math.sin(t * 2.1 + ph) * 0.08;
-  h.body.rotation.z = Math.sin(t * 1.3 + ph) * 0.06 + tilt * 0.25;
+  h.body.position.y = h.kind === 'crawler' ? 0 : lunge ? 0.03 : 0.12 + Math.sin(t * 2.1 + ph) * 0.08;
+  h.body.rotation.z = lunge ? 0 : Math.sin(t * 1.3 + ph) * 0.06 + tilt * 0.25;
   h.body.rotation.x = lunge ? 0.35 : (moving ? 0.12 : 0);
-  const br = 1 + Math.sin(t * 3 + ph) * 0.04;
-  h.body.scale.set(br * (h.kind === 'crawler' ? 1 + Math.sin(t * 6 + ph) * 0.08 : 1), 1 / br, br);
+  const br = 1 + Math.sin(t * (lunge ? 7 : 3) + ph) * 0.04;
+  h.body.scale.set(br * (h.kind === 'crawler' ? 1 + Math.sin(t * 6 + ph) * 0.08 : 1), (1 / br) * (lunge && h.kind !== 'crawler' ? 0.92 : 1), br * (lunge ? 1.12 : 1));
 }
 
 /* the creature: a tall, hunched figure with dragging arms and a pale mask, posed in stop-motion steps */
@@ -1556,7 +1735,7 @@ function makeHumanoid() {
   for (const ex of [-0.048, 0.048]) {
     const socket = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 6), M.finger); socket.position.set(ex, 0.035, 0.195); socket.scale.z = 0.4; head.add(socket);
     const e = new THREE.Mesh(new THREE.SphereGeometry(0.013, 8, 6), M.eye); e.position.set(ex, 0.035, 0.205); head.add(e); eyes.push(e);
-    const gl = glowSprite(1.4, 0xff3a28, 0); gl.position.set(ex, 0.035, 0.215); head.add(gl); glows.push(gl);
+    const gl = glowSprite(1.4, 0xfff1d8, 0); gl.position.set(ex, 0.035, 0.215); head.add(gl); glows.push(gl);
   }
   const mk = geo => { const m = new THREE.Mesh(geo, M.creature); gp.add(m); return m; };
   const arms = [-1, 1].map(s => ({ s, up: mk(limbGeo), lo: mk(limbGeo), fingers: [0, 1, 2, 3].map(() => mk(fingerGeo)) }));
@@ -1628,6 +1807,43 @@ function shadeGeo(geo, colorAt, amb = 0.26) {
   geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   return geo;
 }
+/* A drawn hand, palm up, with a sleeve running down out of frame. Local frame: fingers point to -z, thumb on the +x side
+   for a right hand (mirrored for the left). Curl closes every finger together; the heart hand closes harder when it hides. */
+const SKIN_C = [0.5, 0.44, 0.41], BLOOD_C = [0.42, 0.07, 0.07], SLEEVE_C = [0.17, 0.15, 0.14];
+const handSkin = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
+function makeHand(right, bloody) {
+  const sx = right ? 1 : -1;
+  const skinAt = bloody ? (p => (Math.sin(p.x * 180 + 1.7) * Math.sin(p.z * 150) + Math.sin(p.y * 120)) > 1.62 ? BLOOD_C : SKIN_C) : () => SKIN_C;
+  const gp = new THREE.Group();
+  const palm = new THREE.Mesh(shadeGeo(new THREE.SphereGeometry(1, 22, 14).scale(0.046, 0.017, 0.052), skinAt), handSkin); gp.add(palm);
+  const heel = new THREE.Mesh(shadeGeo(new THREE.SphereGeometry(1, 16, 10).scale(0.036, 0.02, 0.03), skinAt), handSkin); heel.position.set(0.004 * sx, -0.003, 0.03); gp.add(heel);
+  const segGeo = (r, len) => shadeGeo(new THREE.CapsuleGeometry(r, len, 4, 10).rotateX(-Math.PI / 2).translate(0, 0, -len / 2), skinAt);
+  const joints = [];
+  const finger = (pos, lens, r, yaw, roll = 0) => {
+    let parent = new THREE.Group(); parent.position.copy(pos); parent.rotation.set(0, yaw, roll); gp.add(parent);
+    const chain = [];
+    lens.forEach((l, i) => {
+      const j = new THREE.Group(); parent.add(j); chain.push(j);
+      j.add(new THREE.Mesh(segGeo(r - i * 0.0012, l), handSkin));
+      const nx = new THREE.Group(); nx.position.z = -l - 0.001; j.add(nx);
+      parent = nx;
+    });
+    return chain;
+  };
+  [[-0.028, [0.032, 0.024, 0.019], 0.08], [-0.009, [0.037, 0.027, 0.021], 0.02], [0.01, [0.035, 0.026, 0.02], -0.03], [0.028, [0.028, 0.02, 0.016], -0.1]]
+    .forEach(([x, l, yaw]) => joints.push({ chain: finger(new THREE.Vector3(x * sx, 0.002, -0.044), l, 0.0088, yaw * sx), w: [1, 1, 1] }));
+  joints.push({ chain: finger(new THREE.Vector3(0.042 * sx, -0.002, -0.004), [0.028, 0.024], 0.0098, -0.75 * sx, 0.5 * sx), w: [0.55, 0.7], thumb: true });
+  const arm = new THREE.Mesh(shadeGeo(new THREE.CylinderGeometry(0.026, 0.03, 0.12, 16).rotateX(Math.PI / 2).translate(0, 0, 0.09), skinAt), handSkin); gp.add(arm);
+  const sleeve = new THREE.Mesh(shadeGeo(new THREE.CylinderGeometry(0.045, 0.06, 0.42, 18).rotateX(Math.PI / 2).translate(0, 0, 0.35), () => SLEEVE_C, 0.3), handSkin); gp.add(sleeve);
+  const cuff = new THREE.Mesh(shadeGeo(new THREE.TorusGeometry(0.044, 0.008, 6, 20), () => SLEEVE_C, 0.3), handSkin); gp.add(cuff);
+  const tilt = 0.45; arm.rotation.x = sleeve.rotation.x = cuff.rotation.x = tilt; cuff.position.set(0, -0.14 * Math.sin(tilt), 0.14 * Math.cos(tilt));
+  return {
+    gp,
+    curl(k, jitter = 0) {
+      for (const f of joints) f.chain.forEach((j, i) => { j.rotation.x = k * f.w[i] * (i === 0 ? 0.9 : 1.05) + jitter * Math.sin(gt * 23 + i * 2 + f.chain.length); });
+    }
+  };
+}
 const heart = (() => {
   const gp = new THREE.Group();
   const core = new THREE.Group(); gp.add(core);
@@ -1668,31 +1884,10 @@ const heart = (() => {
   add(tube(0.009, 0.032), 0.018, 0.058, 0.022, 0.35, 0, 0.55);
   add(tube(0.0065, 0.022), 0.045, 0.06, -0.01, 0, 0, -0.25);
 
-  const SKIN = [0.5, 0.44, 0.41], BLOOD = [0.42, 0.07, 0.07];
-  const skinMat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
-  const skinAt = (p) => (Math.sin(p.x * 180 + 1.7) * Math.sin(p.z * 150) + Math.sin(p.y * 120)) > 1.35 ? BLOOD : SKIN;
-  const hand = new THREE.Group(); hand.rotation.y = 2.0; gp.add(hand);
-  const palmGeo = shadeGeo(new THREE.SphereGeometry(1, 24, 16).scale(0.048, 0.016, 0.052), skinAt);
-  const palm = new THREE.Mesh(palmGeo, skinMat); palm.position.set(0, -0.072, 0.01); hand.add(palm);
-  const segGeo = (r, len) => shadeGeo(new THREE.CapsuleGeometry(r, len, 4, 10).rotateX(-Math.PI / 2).translate(0, 0, -len / 2), skinAt);
-  const finger = (x, len, bends, parentPos, yaw = 0) => {
-    let parent = new THREE.Group(); parent.position.copy(parentPos); parent.rotation.y = yaw; hand.add(parent);
-    len.forEach((l, i) => {
-      const j = new THREE.Group(); j.rotation.x = bends[i]; parent.add(j);
-      j.add(new THREE.Mesh(segGeo(0.0085 - i * 0.001, l), skinMat));
-      const nx = new THREE.Group(); nx.position.z = -l - 0.004; j.add(nx);
-      parent = nx;
-    });
-  };
-  [[-0.03, [0.026, 0.02, 0.016], 0.05], [-0.01, [0.03, 0.022, 0.018], 0.0], [0.01, [0.029, 0.021, 0.017], -0.03], [0.029, [0.024, 0.018, 0.014], -0.08]]
-    .forEach(([x, len, yaw]) => finger(x, len.map(l => l * 1.3), [0.95, 0.8, 0.55], new THREE.Vector3(x, -0.07, -0.035), yaw));
-  finger(0, [0.026, 0.022], [0.9, 0.5], new THREE.Vector3(-0.045, -0.068, 0.02), 1.15);
-  const wrist = new THREE.Mesh(shadeGeo(new THREE.CylinderGeometry(0.02, 0.025, 0.16, 18).rotateX(Math.PI / 2).translate(0, 0, 0.08), skinAt), skinMat);
-  wrist.position.set(0.012, -0.082, 0.0); wrist.rotation.set(-0.5, 0.45, 0); gp.add(wrist);
-
+  const hand = makeHand(true, true); hand.gp.position.set(0, -0.078, 0.004); hand.gp.rotation.set(0, 0.85, 0.1); gp.add(hand.gp); hand.curl(0.75);
   const light = new THREE.PointLight(0xffe4dc, 0, 6, 1.4); light.position.set(0, 0.12, -0.25); gp.add(light);
   gp.visible = false; camera.add(gp);
-  return { gp, core, mat, light, shown: false, hidden: false, k: 0, base: 5 };
+  return { gp, core, mat, light, hand, shown: false, hidden: false, k: 0, base: 5 };
 })();
 
 /* the orienteering compass in the left hand: its needle points at the next beacon, its dial keeps north */
@@ -1727,12 +1922,9 @@ const compass = (() => {
   tri(0.04, 0x9a1612);
   tri(-0.03, 0x1d1712);
   const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.004, 8), new THREE.MeshBasicMaterial({ color: 0x3a2f20, fog: false })); pin.position.y = 0.012; gp.add(pin);
-  const SKIN = [0.5, 0.44, 0.41];
-  const skin = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
-  const thumb = new THREE.Mesh(shadeGeo(new THREE.CapsuleGeometry(0.011, 0.05, 4, 8), () => SKIN), skin); thumb.position.set(0.05, 0.004, 0.02); thumb.rotation.set(Math.PI / 2, 0, 0.5); gp.add(thumb);
-  const palm = new THREE.Mesh(shadeGeo(new THREE.SphereGeometry(1, 20, 14).scale(0.055, 0.016, 0.06), () => SKIN), skin); palm.position.set(0.006, -0.018, 0.01); gp.add(palm);
+  const hand = makeHand(false, false); hand.gp.position.set(-0.006, -0.026, 0.006); hand.gp.rotation.set(0, -0.8, 0); gp.add(hand.gp); hand.curl(0.85);
   gp.visible = false; camera.add(gp);
-  return { gp, dial, needle, k: 0, shown: false, target: null };
+  return { gp, dial, needle, hand, k: 0, shown: false, target: null, jolt: 0 };
 })();
 function updateCompass(dt) {
   compass.k = damp(compass.k, compass.shown ? 1 : 0, 4, dt);
@@ -1742,11 +1934,14 @@ function updateCompass(dt) {
   compass.gp.position.set(-0.15 + sway, -0.2 - (1 - compass.k) * 0.25 + Math.abs(sway) * 0.5, -0.38);
   compass.gp.rotation.set(0.95, 0.25, 0.08);
   compass.dial.rotation.y = -player.yaw;
+  compass.hand.curl(0.85, 0.03 * SW.fear);
+  compass.jolt = Math.max(0, compass.jolt - dt * 1.2);
   const t = compass.target;
   if (t) {
     const ty = Math.atan2(-(t.x - player.x), -(t.z - player.z));
     let rel = ty - player.yaw;
     while (rel > Math.PI) rel -= 2 * Math.PI; while (rel < -Math.PI) rel += 2 * Math.PI;
+    rel += (W.edge || 0) * (Math.sin(gt * 4.1) * 2.4 + Math.sin(gt * 11.3) * 0.9) + compass.jolt * Math.sin(gt * 26) * 0.6 + (W.echoLure || 0) * Math.sin(gt * 1.9) * 1.4;
     let cur = compass.needle.rotation.y, d = rel - cur;
     while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
     compass.needle.rotation.y = cur + d * Math.min(1, dt * 6) + Math.sin(gt * 7) * 0.02;
@@ -2451,6 +2646,8 @@ async function caught() {
   await wait(0.6);
   tween(fx, 'fade', 0, 1.6);
   player.canMove = true; busy = false;
+  SW.nextWander = gt + 6;
+  relayAfterRespawn();
 }
 function relocateCreatureFar() {
   let best = null;
@@ -2494,15 +2691,24 @@ function updateCreature(dt) {
   let detect = false;
   if (!W.inBooth) {
     const stalking = C.mode === 'stalk';
-    const r = heart.hidden ? (stalking ? 3.5 : 6) : (stalking ? 8 : 22);
-    const nr = player.sprinting ? 14 : 0;
-    if (d < Math.max(r, nr) || C.aggressive) detect = true;
+    let da = Math.atan2(dx, dz) - C.yaw; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+    const r = heart.hidden ? (stalking ? 3.5 : 6) : (stalking ? 10 : 26);
+    if ((d < r && (Math.abs(da) < 0.9 || d < 4)) || C.aggressive) detect = true;
   }
-  if (detect && C.mode === 'stalk') toPhase('peak');
-  if (detect) { if (C.mode !== 'hunt') boom(AC.currentTime); C.mode = 'hunt'; C.lastX = player.x; C.lastZ = player.z; C.timer = 5; }
+  if (C.mode === 'alert') {
+    C.alertT -= dt;
+    if (C.alertT <= 0) {
+      if (detect || d < 12) { if (D.phase === 'build') toPhase('peak'); boom(AC.currentTime); C.mode = 'hunt'; C.lastX = player.x; C.lastZ = player.z; C.timer = 5; }
+      else { C.mode = 'search'; C.timer = 6; C.listenT = 1.5; C.lastX = player.x; C.lastZ = player.z; C.tx = C.x; C.tz = C.z; }
+    }
+  } else if (detect && C.mode !== 'hunt' && C.mode !== 'booth' && !C.aggressive) { C.mode = 'alert'; C.alertT = 1.1; if (AC) rasp(AC.currentTime); }
+  else if (detect) { if (C.mode !== 'hunt') boom(AC.currentTime); C.mode = 'hunt'; C.lastX = player.x; C.lastZ = player.z; C.timer = 5; }
   if (W.inBooth && (C.mode === 'hunt' || C.mode === 'search') && d < 34) { C.mode = 'booth'; C.timer = 9; C.boothAngle = Math.atan2(C.x - W.inBooth.x, C.z - W.inBooth.z); }
   let sp = C.patrolSpeed;
   switch (C.mode) {
+    case 'alert':
+      sp = 0; C.tx = player.x; C.tz = player.z;
+      break;
     case 'hunt':
       C.tx = C.lastX; C.tz = C.lastZ; sp = C.huntSpeed * (d < 7 ? 1.45 : 1);
       if (!detect) { C.timer -= dt; if (C.timer <= 0 || Math.hypot(C.tx - C.x, C.tz - C.z) < 1.5) { C.mode = 'search'; C.timer = 7; C.listenT = 2.5; } }
@@ -2548,7 +2754,7 @@ function animateCreature(dt, speed) {
     C.gp.position.set(C.rx, player.y + player.eye - C.h.eyeY * C.gp.scale.y, C.rz);
     C.gp.rotation.y = C.ryaw;
     ghostPose(C.h, 0, false, 0.35, true);
-    setEyes(C.h, 1);
+    setEyes(C.h, 1); setFace(C.h, 1.4, 1.2);
     return;
   }
   const hunting = C.mode === 'hunt';
@@ -2563,12 +2769,15 @@ function animateCreature(dt, speed) {
     if (st !== C.lastStep && moving) C.lastStep = st;
   }
   C.gp.scale.setScalar(1 + 0.2 * Math.min(W.fragIndex, 3));
-  ghostPose(C.h, C.phase, moving, C.tilt, hunting && Math.hypot(player.x - C.x, player.z - C.z) < 7);
+  ghostPose(C.h, C.phase, moving, C.tilt, hunting && moving);
   C.gp.position.set(C.rx, groundH(C.rx, C.rz), C.rz);
   C.gp.rotation.y = C.ryaw;
   const d = Math.hypot(player.x - C.x, player.z - C.z);
-  const eyesOn = !C.freeze && C.op > 0.2 && (C.mode === 'hunt' || C.mode === 'search' || (C.mode === 'stalk' ? d < 45 && Math.sin(gt * 0.9) > -0.3 : d < 30));
-  setEyes(C.h, eyesOn ? (hunting ? 1 : 0.6) : 0);
+  const eyesOn = !C.freeze && C.op > 0.2 && (C.mode === 'hunt' || C.mode === 'search' || C.mode === 'alert' || (C.mode === 'stalk' ? d < 45 && Math.sin(gt * 0.9) > -0.3 : d < 30));
+  setEyes(C.h, eyesOn ? (hunting || C.mode === 'alert' ? 1 : 0.6) : 0);
+  C.fe = damp(C.fe ?? 0.3, hunting ? 1.35 : C.mode === 'alert' ? 0.85 : C.mode === 'search' ? 0.6 : 0.3, 8, dt);
+  C.fm = damp(C.fm ?? 0, hunting ? 1 : C.mode === 'alert' ? 0.15 : 0, 6, dt);
+  setFace(C.h, C.fe, C.fm);
 }
 
 /* Apparitions: non-lethal scares between encounters, alternating a watcher at the edge of the light and steps behind the player. */
@@ -2580,6 +2789,7 @@ function placeGhost(x, z, faceX, faceZ) {
 }
 function startApparition(kind) {
   A.kind = kind; A.t = 0; A.t2 = 0; A.look = 0; A.shown = false; A.count++;
+  setFace(G, kind === 'watch' ? 0.5 : 1.4, kind === 'watch' ? 0 : 1.1);
   if (kind === 'watch') {
     let best = null;
     for (let i = 0; i < 12; i++) {
@@ -2730,24 +2940,37 @@ function flare() {
   setTimeout(() => { if (AC && W.heartOwned) musicBox(AC.currentTime, 76, 0.08, S.ui); }, D.flareMax * 1000);
 }
 
-/* ---------- swarm, fear and the heart's blast ---------- */
-/* Small ghosts drift in packs during build-up and peaks; crawlers lurk on the way to the next beacon and lunge.
-   Each touch raises fear; full fear sends you back to the last memory. The blast is the only weapon. */
+/* ---------- bestiary, fear and the heart's blast ---------- */
+/* Each kind perceives differently. Small ghosts hear (running, the beating heart) but see poorly and roam in growing numbers;
+   crawlers are blind and feel footsteps, so stopping dead loses them; the echo sings the lullaby to lure you off the path.
+   Wandering, they show half-closed slits of light; once they notice you the eyes widen, then the mouth tears open and they slide at you.
+   Their number grows with every memory and with the distance covered toward the next one. */
 const SWARM = [];
-for (let i = 0; i < 8; i++) SWARM.push({ h: makeGhost('blob', smokeMat(0x433d35, 1.25)), kind: 'blob', active: false });
+for (let i = 0; i < 14; i++) SWARM.push({ h: makeGhost('blob', smokeMat(0x433d35, 1.25)), kind: 'blob', active: false });
 for (let i = 0; i < 4; i++) SWARM.push({ h: makeGhost('crawler', smokeMat(0x3d3730, 1.3)), kind: 'crawler', active: false });
-const SW = { nextSpawn: 0, fear: 0 };
+SWARM.push({ h: makeGhost('echo', smokeMat(0x48423a, 1.2)), kind: 'echo', active: false });
+const SW = { nextSpawn: 0, nextWander: 0, fear: 0, echoSing: 0 };
 const growth = () => 1 + 0.22 * Math.min(W.fragIndex, 3);
 function swarmMax() { return W.finalOn ? 6 : 2 + W.fragIndex * 2; }
-function spawnEnemy(kind, ang, dist) {
-  const e = SWARM.find(s => !s.active && s.kind === kind); if (!e) return;
+/* 0 at the start of the forest, about 4 on the final run */
+function density() {
+  if (W.finalOn) return 4;
+  const t = currentTarget(), p = W.fragIndex === 0 ? { x: QX, z: LAMP1_Z } : frags[W.fragIndex - 1];
+  const total = Math.hypot(t.x - p.x, t.z - p.z) || 1, left = Math.hypot(t.x - player.x, t.z - player.z);
+  return W.fragIndex + 0.85 * clamp(1 - left / total, 0, 1);
+}
+const quota = dn => ({ blob: Math.round(1 + dn * 2.2), crawler: dn < 1 ? 0 : Math.min(3, Math.floor(dn)), echo: dn >= 2 && !W.finalOn ? 1 : 0 });
+function spawnEnemy(kind, ang, dist, st = 'chase') {
+  const e = SWARM.find(s => !s.active && s.kind === kind); if (!e) return null;
   const a = ang ?? mr(0, Math.PI * 2), d = dist ?? mr(16, 24);
-  const x = clamp(player.x + Math.sin(a) * d, -46, 46), z = clamp(player.z + Math.cos(a) * d, -280, -118);
-  if (inLight(x, z, 2)) return;
-  Object.assign(e, { active: true, x, z, yaw: 0, phase: mr(0, 6), op: 0, dying: 0, vx: 0, vz: 0, ashed: false, cried: false, lunge: false, wob: 0,
-    scale: (kind === 'crawler' ? 0.9 : 0.8) * growth() });
+  const x = clamp(player.x + Math.sin(a) * d, bounds.x0 + 4, bounds.x1 - 4), z = clamp(player.z + Math.cos(a) * d, bounds.z0 + 4, bounds.z1 - 4);
+  if (inLight(x, z, 2)) return null;
+  Object.assign(e, { active: true, x, z, hx: x, hz: z, tx: x, tz: z, yaw: mr(0, 6.28), phase: mr(0, 6), op: 0, dying: 0, vx: 0, vz: 0, ashed: false,
+    st, t: 0, lost: 0, still: 0, eye: st === 'chase' ? 1.3 : 0.3, mouth: st === 'chase' ? 1 : 0, lastX: player.x, lastZ: player.z,
+    scale: (kind === 'crawler' ? 0.9 : kind === 'echo' ? 1.05 : 0.8) * growth() });
   e.h.gp.visible = true; e.h.gp.scale.setScalar(e.scale); setEyes(e.h, 1);
-  ashBurst(x, groundH(x, z) + 0.2, z, 50, 0.8, 1.2);
+  if (st === 'chase') ashBurst(x, groundH(x, z) + 0.2, z, 50, 0.8, 1.2);
+  return e;
 }
 function killEnemy(e, push) {
   if (e.dying) return;
@@ -2770,56 +2993,118 @@ async function overwhelmed() {
   player.x = cp.x; player.z = cp.z; player.yaw = cp.yaw; player.pitch = 0; player.vx = player.vz = 0;
   SW.fear = 0;
   for (const e of SWARM) { e.active = false; e.h.gp.visible = false; }
+  SW.nextWander = gt + 6;
   toPhase('relax');
   await wait(0.5);
   tween(fx, 'fade', 0, 1.4);
   player.canMove = true; busy = false;
+  relayAfterRespawn();
+}
+/* how loud the player is: running carries far, walking a little, standing still nothing; the visible heart beats audibly */
+function noiseR() { return player.sprinting ? 16 : player.moving ? (heart.hidden ? 3 : 7) : 0; }
+function heartR() { return heart.hidden || !W.heartOwned ? 0 : 5 + 5 * SW.fear; }
+function perceives(e, d) {
+  if (busy || W.inBooth || W.memory) return false;
+  if (e.kind === 'blob') return d < Math.max(noiseR(), heartR(), 3.5);
+  if (e.kind === 'crawler') return player.moving && d < 9 + W.fragIndex;
+  return d < 7;
+}
+function screech(e) {
+  if (!AC) return;
+  placePanner(S.gPan, e.x, 1, e.z);
+  burst(AC.currentTime, { dur: 0.5, amp: 0.35, freq: e.kind === 'blob' ? 1700 : 900, Q: 4, dest: S.gPan, attack: 0.02 });
+  rasp(AC.currentTime + 0.05, S.gPan);
 }
 function updateSwarm(dt) {
-  const playing = state === 'tristesse' || state === 'final';
-  if (playing && C.introDone && (D.phase === 'build' || D.phase === 'peak') && !W.memory && !busy && !W.inRefuge && gt > SW.nextSpawn) {
-    const blobs = SWARM.filter(e => e.active && !e.dying && e.kind === 'blob').length;
-    if (blobs < swarmMax()) for (let i = 0; i < (D.phase === 'peak' ? 2 : 1); i++) spawnEnemy('blob');
-    if (W.fragIndex >= 1 && !SWARM.some(e => e.active && e.kind === 'crawler')) {
-      const t = currentTarget();
-      spawnEnemy('crawler', Math.atan2(t.x - player.x, t.z - player.z) + mr(-0.4, 0.4), mr(12, 16));
+  const playing = (state === 'tristesse' || state === 'final') && !W.done2;
+  const dn = playing && C.introduced ? density() : 0;
+  W.density = dn;
+  if (playing && C.introduced && !busy && !W.memory) {
+    const q = quota(dn);
+    const count = k => SWARM.filter(e => e.active && !e.dying && e.kind === k && e.st !== 'chase').length;
+    if (gt > SW.nextWander) {
+      SW.nextWander = gt + mr(1.2, 2.5);
+      for (const k of ['blob', 'crawler', 'echo']) {
+        if (count(k) >= q[k]) continue;
+        const t = currentTarget(), toT = Math.atan2(t.x - player.x, t.z - player.z);
+        if (k === 'crawler') spawnEnemy(k, toT + mr(-0.5, 0.5), mr(14, 22), 'wander');
+        else if (k === 'echo') spawnEnemy(k, toT + (Math.random() < 0.5 ? -1 : 1) * mr(0.9, 1.4), mr(20, 26), 'wander');
+        else spawnEnemy(k, (Math.random() < 0.6 ? -player.yaw + Math.PI : 0) + mr(-1.2, 1.2) + (Math.random() < 0.6 ? 0 : mr(0, 6.28)), mr(20, 34), 'wander');
+        break;
+      }
     }
-    SW.nextSpawn = gt + (D.phase === 'peak' ? mr(3, 5) : mr(6, 10));
+    if ((D.phase === 'build' || D.phase === 'peak') && !W.inRefuge && gt > SW.nextSpawn) {
+      const chasers = SWARM.filter(e => e.active && !e.dying && e.kind === 'blob' && e.st === 'chase').length;
+      if (chasers < swarmMax()) for (let i = 0; i < (D.phase === 'peak' ? 2 : 1); i++) spawnEnemy('blob');
+      SW.nextSpawn = gt + (D.phase === 'peak' ? mr(3, 5) : mr(6, 10));
+    }
   }
-  if (playing && D.phase === 'relax') for (const e of SWARM) if (e.active && !e.dying) killEnemy(e, false);
+  if (playing && D.phase === 'relax') for (const e of SWARM) if (e.active && !e.dying && e.st === 'chase' && e.kind === 'blob' && e.t > 4) e.st = 'wander';
+  W.echoLure = 0;
   for (const e of SWARM) {
     if (!e.active) continue;
     const gp = e.h.gp;
     if (e.dying) {
       e.dying += dt; e.x += e.vx * dt; e.z += e.vz * dt; e.vx *= 0.9; e.vz *= 0.9;
       e.op = Math.max(0, 1 - e.dying / 0.35);
+      e.mouth = 1.2; e.eye = 1.4;
       if (e.dying > 0.15 && !e.ashed) { e.ashed = true; ashBurst(e.x, groundH(e.x, e.z) + 0.3, e.z, 110, 1.2 * e.scale, 1.6 * e.scale); }
       if (e.dying > 0.4) { e.active = false; gp.visible = false; continue; }
     } else {
-      e.op = Math.min(1, e.op + dt * 1.5);
+      e.op = Math.min(1, e.op + dt * (e.st === 'chase' ? 1.5 : 0.5));
+      e.t += dt;
       const dx = player.x - e.x, dz = player.z - e.z, d = Math.hypot(dx, dz) || 1;
-      if (e.kind === 'blob') {
-        const sp = (!heart.hidden || d < 5) ? 1.3 + 0.25 * W.fragIndex : 0.4;
-        e.wob += dt;
-        const side = Math.sin(e.wob * 1.7 + e.phase) * 0.6;
-        e.x += (dx / d * sp - dz / d * side) * dt; e.z += (dz / d * sp + dx / d * side) * dt;
-        e.lunge = false;
+      const sense = perceives(e, d);
+      let sp = 0, faceX = dx, faceZ = dz;
+      if (e.st === 'wander') {
+        if (Math.hypot(e.tx - e.x, e.tz - e.z) < 1 || e.t > 9) { e.t = 0; e.tx = e.hx + mr(-6, 6); e.tz = e.hz + mr(-6, 6); }
+        sp = e.kind === 'crawler' ? 0.25 : e.kind === 'echo' ? 0 : 0.45;
+        faceX = e.tx - e.x; faceZ = e.tz - e.z;
+        if (e.kind === 'echo') {
+          faceX = dx; faceZ = dz;
+          W.echoLure = Math.max(W.echoLure, 1 - smooth(8, 22, d));
+          if (gt > SW.echoSing && AC) { SW.echoSing = gt + 8; placePanner(S.humPan, e.x, 2.6, e.z); hum(AC.currentTime, S.humPan); }
+        }
+        e.eye = damp(e.eye, 0.3 + 0.1 * Math.sin(gt * 0.7 + e.phase), 3, dt); e.mouth = damp(e.mouth, 0, 4, dt);
+        if (sense) { e.st = 'alert'; e.t = 0; if (AC) { placePanner(S.gPan, e.x, 1, e.z); rasp(AC.currentTime, S.gPan); } }
+        if (d > 52) { e.active = false; gp.visible = false; continue; }
+      } else if (e.st === 'alert') {
+        e.eye = damp(e.eye, 0.85, 8, dt); e.mouth = damp(e.mouth, 0.15, 6, dt);
+        const hold = e.kind === 'crawler' ? 0.6 : e.kind === 'echo' ? 0.4 : 1.0;
+        if (e.t > hold) {
+          if (perceives(e, d) || d < 5) { e.st = 'chase'; e.t = 0; e.lost = 0; e.still = 0; screech(e); W.danger = Math.max(W.danger, 0.6); }
+          else { e.st = 'wander'; e.t = 0; }
+        }
       } else {
-        e.lunge = d < 9 + W.fragIndex;
-        const sp = e.lunge ? 4.0 + 0.4 * W.fragIndex : 0.5;
-        e.x += dx / d * sp * dt; e.z += dz / d * sp * dt;
-        if (e.lunge && !e.cried && AC) { e.cried = true; rasp(AC.currentTime, S.world); }
+        e.eye = damp(e.eye, 1.35, 10, dt); e.mouth = damp(e.mouth, 1, 8, dt);
+        if (sense) { e.lastX = player.x; e.lastZ = player.z; e.lost = 0; } else e.lost += dt;
+        if (e.kind === 'crawler') {
+          e.still = player.moving ? 0 : e.still + dt;
+          if (e.still > 0.7) { e.lost = 99; }
+          sp = 4.0 + 0.4 * W.fragIndex;
+        } else if (e.kind === 'echo') sp = 4.6;
+        else sp = 2.6 + 0.3 * W.fragIndex;
+        if (e.lost > 0) { faceX = e.lastX - e.x; faceZ = e.lastZ - e.z; }
+        if (e.lost > 3 || d > 26) { e.st = 'wander'; e.t = 0; e.hx = e.x; e.hz = e.z; e.tx = e.x; e.tz = e.z; }
       }
+      const fd = Math.hypot(faceX, faceZ) || 1;
+      let mx = faceX / fd, mz = faceZ / fd;
+      if (e.kind === 'blob' && e.st === 'chase') { const side = Math.sin(gt * 1.7 + e.phase) * 0.35; const ox = mx; mx -= mz * side; mz += ox * side; }
+      e.x += mx * sp * dt; e.z += mz * sp * dt;
       if (inLight(e.x, e.z, 1)) killEnemy(e, false);
-      e.yaw = Math.atan2(dx, dz);
+      let dy = Math.atan2(faceX, faceZ) - e.yaw; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
+      e.yaw += dy * Math.min(1, dt * (e.st === 'wander' ? 1.5 : 8));
       const reach = (e.kind === 'crawler' ? 0.9 : 0.7) * e.scale + 0.35;
-      if (d < reach && !busy && !W.inRefuge) { killEnemy(e, false); hurt(e.kind === 'crawler' ? 0.45 : 0.3); }
-      W.danger = Math.max(W.danger || 0, 1 - smooth(3, 16, d));
+      if (d < reach && e.st === 'chase' && !busy && !W.inRefuge) { killEnemy(e, false); hurt(e.kind === 'crawler' ? 0.45 : e.kind === 'echo' ? 0.4 : 0.3); }
+      if (e.st !== 'wander') W.danger = Math.max(W.danger || 0, (e.st === 'chase' ? 1 : 0.5) * (1 - smooth(3, 16, d)));
     }
     gp.position.set(e.x, groundH(e.x, e.z), e.z); gp.rotation.y = e.yaw;
-    ghostPose(e.h, e.phase, true, 0, e.lunge);
-    for (const m of e.h.body.children) if (m.material && m.material.uniforms) m.material.uniforms.uOp.value = (e.kind === 'crawler' ? 1.3 : 1.25) * e.op;
-    for (const g of e.h.glows) g.material.opacity = 0.85 * e.op;
+    ghostPose(e.h, e.phase, e.st !== 'wander' || e.kind !== 'echo', e.kind === 'echo' ? -0.9 : 0, e.st === 'chase' && !e.dying);
+    setFace(e.h, e.eye, e.mouth);
+    const base = e.kind === 'crawler' ? 1.3 : 1.25;
+    for (const m of e.h.body.children) if (m.material && m.material.uniforms) m.material.uniforms.uOp.value = base * e.op;
+    e.h.mouth.visible = e.op > 0.3;
+    for (const g of e.h.glows) g.material.opacity = (e.st === 'wander' ? 0.8 : 1) * e.op;
   }
   SW.fear = Math.max(0, SW.fear - dt * (W.inRefuge ? 0.35 : 0.06));
 }
@@ -2856,7 +3141,7 @@ function updateFlareFx(dt) {
 function updateTristesse(dt) {
   if (state !== 'tristesse' && state !== 'final') return;
   const t = currentTarget();
-  compass.target = t;
+  compass.target = W.relay || t;
   const label = W.fragIndex < 3 ? loc('site' + (W.fragIndex + 1) + '.name') : loc('beacon.last');
   if (W.lastBeacon !== label && !W.memory) {
     W.lastBeacon = label;
@@ -2867,6 +3152,18 @@ function updateTristesse(dt) {
   W.calm = damp(W.calm || 0, W.inRefuge ? 1 : 0, 2, dt);
   if (consume('KeyR')) D.flareReq = true;
   directorUpdate(dt);
+  updateLights(dt);
+
+  /* the wall of darkness: near the edge of the playable ground the dark closes in, sound chokes, the compass panics */
+  const edge = Math.min(player.x - bounds.x0, bounds.x1 - player.x, player.z - bounds.z0, bounds.z1 - player.z);
+  W.edge = damp(W.edge || 0, busy ? 0 : 1 - smooth(1, 9, edge), 3, dt);
+  if (W.edge > 0.01) {
+    W.whisper = Math.max(W.whisper, 1.1 * W.edge);
+    fx.tunnel = Math.max(fx.tunnel, 0.55 * W.edge);
+    const cx = (bounds.x0 + bounds.x1) / 2, cz = (bounds.z0 + bounds.z1) / 2, cd = Math.hypot(cx - player.x, cz - player.z) || 1;
+    player.x += (cx - player.x) / cd * W.edge * 1.4 * dt; player.z += (cz - player.z) / cd * W.edge * 1.4 * dt;
+    H.bpm = Math.max(H.bpm, 70 + 60 * W.edge);
+  }
 
   if (!C.introDone && !C.introduced && !busy) {
     const b0 = booths[0];
@@ -2902,7 +3199,7 @@ function updateTristesse(dt) {
         pr = loc('pickup.prompt');
         if (consume('KeyE', 'Space')) pickup(f);
       } else {
-        const nb = booths.find(b => !b.lit && Math.hypot(player.x - b.x, player.z - b.z) < 3);
+        const nb = booths.find(b => !b.lit && !b.dead && Math.hypot(player.x - b.x, player.z - b.z) < 3);
         if (nb) {
           pr = loc('relight.prompt');
           if (down('KeyE') || down('Space')) {
@@ -3014,6 +3311,7 @@ function updateHeartModel(dt) {
   heart.gp.rotation.set(0.32 + 0.4 * heart._h, -0.3, 0.06);
   const s = 1 + (0.09 + 0.12 * (W.danger || 0)) * pulse;
   heart.core.scale.set(s, s * 0.97, s);
+  heart.hand.curl(lerp(0.72, 1.2, heart._h) + 0.05 * pulse, 0.04 * (SW.fear + 0.5 * (W.danger || 0)));
   const lightOn = heart.k * (W.memory ? 1.4 : 1);
   const warn = W.danger || 0;
   heart.light.intensity = heart.base * lightOn * (0.6 + (0.45 + 1.4 * warn) * pulse) * lerp(1, 0.22, heart._h) * (1 + 7 * D.flareT) * (D.flareCd > 0 ? 0.75 : 1);
@@ -3022,7 +3320,7 @@ function updateHeartModel(dt) {
 function updateFog(dt) {
   fog.color.lerp(W.fogC, 1 - Math.exp(-3 * dt));
   scene.background.copy(fog.color);
-  fog.density = damp(fog.density, W.fogD, 2, dt);
+  fog.density = damp(fog.density, W.fogD * (P.uVol.value > 0 ? 0.55 : 1), 2, dt);
 }
 function updateAudio(dt) {
   updateListener();
@@ -3033,6 +3331,7 @@ function updateAudio(dt) {
   let lpf = 18000;
   if (W.inBooth) lpf = 900;
   if (W.memory) lpf = 500;
+  lpf = Math.min(lpf, lerp(18000, 600, W.edge || 0));
   S.lp.frequency.setTargetAtTime(lpf, now, 0.2);
   const tense = state === 'tristesse' || state === 'final';
   const calm = W.calm || 0, dng = W.danger || 0;
@@ -3077,7 +3376,7 @@ function updateWorld(dt) {
     q.glow.scale.setScalar(Math.max(5, d * 0.08));
   }
   const shiver = D.tele && Math.random() < 0.3 ? 0.25 : 1;
-  for (const b of booths) { b.glow.material.opacity = (0.45 + 0.1 * Math.sin(gt * 9 + b.x)) * (b.lit ? shiver : 0.05); b.disc.material.opacity = b.lit ? 0.32 * shiver : 0; }
+  for (const b of booths) { const k = b.flk ?? 1; b.glow.material.opacity = (0.45 + 0.1 * Math.sin(gt * 9 + b.x)) * (b.lit ? shiver * k : b.dead ? 0 : 0.05); b.disc.material.opacity = b.lit ? 0.32 * shiver * k : 0; }
   for (const f of frags) if (!f.taken) {
     const isNext = W.fragIndex < 3 && frags[W.fragIndex] === f;
     f.glow.material.opacity = (isNext ? 0.5 : 0.2) + 0.15 * Math.sin(gt * 2 + f.x);
@@ -3094,8 +3393,43 @@ function updateWorld(dt) {
   scheduleGiants();
   updateGiants(dt);
   if (sites[0].swing) sites[0].swing.rotation.x = Math.sin(gt * 0.9) * 0.12;
-  siteLights.forEach((l, i) => { l.intensity = 5 * (0.9 + 0.1 * Math.sin(gt * 11 + i * 3)) * shiver; });
+  siteLights.forEach((l, i) => {
+    const st = sites[i], k = st.flk ?? 1;
+    l.intensity = 5 * (0.9 + 0.1 * Math.sin(gt * 11 + i * 3)) * shiver * k;
+    st.disc.material.opacity = 0.32 * k;
+    st.gp.traverse(o => { if (o.isSprite) { o.userData.o0 ??= o.material.opacity; o.material.opacity = o.userData.o0 * k; } else if (o.isMesh && o.material.fog === false) o.visible = k > 0.05; });
+  });
   updateFog(dt);
+}
+
+/* ---------- volumetric fog ---------- */
+/* Feeds the post pass: camera matrices for the ray march, the playable bounds for the wall of darkness,
+   and the six lights that matter most from where the camera stands, so lamps carve glowing cones out of the fog. */
+const VOL_L = [], _vp = new THREE.Vector3();
+function volLight(obj, w) { if (w > 0.01) { obj.getWorldPosition(_vp); VOL_L.push({ x: _vp.x, y: _vp.y, z: _vp.z, w }); } }
+function updateVolume() {
+  camera.updateMatrixWorld();
+  P.uInvProj.value.copy(camera.projectionMatrixInverse);
+  P.uCamW.value.copy(camera.matrixWorld);
+  P.uCamPos.value.setFromMatrixPosition(camera.matrixWorld);
+  const on = state === 'tristesse' || state === 'final' || state === 'tristesseIntro';
+  P.uVol.value = on ? W.fogD * 0.8 : 0;
+  P.uWallOn.value = on ? 1 : 0;
+  P.uWall.value.set(bounds.x0, bounds.x1, bounds.z0, bounds.z1);
+  P.uVolCol.value.copy(fog.color).multiplyScalar(1.3);
+  VOL_L.length = 0;
+  if (on) {
+    if (heart.gp.visible) volLight(heart.light, heart.light.intensity * 0.06);
+    volLight(flareLight, flareLight.intensity * 0.05);
+    for (const l of RELAY) volLight(l.bulb, l.light.intensity * 0.13);
+    siteLights.forEach(l => volLight(l, l.intensity * 0.11));
+    for (const q of quays) volLight(q.bulb, q.spot.intensity * 0.045);
+    for (const b of booths) if (b.lit) volLight(b.glow, 0.45 * (b.flk ?? 1));
+    const cx = P.uCamPos.value.x, cz = P.uCamPos.value.z;
+    VOL_L.forEach(l => { l.s = l.w / (1 + ((l.x - cx) ** 2 + (l.z - cz) ** 2) * 0.01); });
+    VOL_L.sort((a, b) => b.s - a.s);
+  }
+  P.uLights.value.forEach((v, i) => { const l = VOL_L[i]; if (l) v.set(l.x, l.y, l.z, l.w); else v.set(0, -100, 0, 0); });
 }
 
 /* ---------- main loop ---------- */
@@ -3117,6 +3451,7 @@ function frame(now) {
   P.uTime.value = now / 1000;
   smokeTime.value = now / 1000;
   updateTouchUI();
+  updateVolume();
   P.uFogD.value = fog.density;
   P.uTunnel.value = clamp(fx.tunnel, 0, 1);
   P.uRed.value = clamp(fx.red, 0, 1);
@@ -3128,6 +3463,12 @@ function frame(now) {
   renderer.setRenderTarget(null);
   renderer.render(postScene, postCam);
 }
+/* additive glows add light but leave the alpha mask untouched */
+scene.traverse(o => {
+  const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+  for (const m of ms) if (m.blending === THREE.AdditiveBlending)
+    Object.assign(m, { blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor });
+});
 updateCamera(0);
 requestAnimationFrame(frame);
 
@@ -3252,7 +3593,7 @@ $('start').addEventListener('click', async () => {
 });
 $('again').addEventListener('click', () => location.reload());
 
-window.__rh = { SWARM, SW, FL, spawnEnemy, giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
+window.__rh = { SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
 </script>
 
 </body>
