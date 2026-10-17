@@ -1,0 +1,8 @@
+{
+  "appId": "com.zed69000.rawheart",
+  "appName": "Raw Heart",
+  "webDir": "../public",
+  "android": {
+    "backgroundColor": "#050606"
+  }
+}
