@@ -78,6 +78,8 @@ kbd{font-family:var(--mono);color:var(--ash);border:1px solid var(--smoke);paddi
 .page #cardBody{display:flex;flex-direction:column;gap:.7rem;min-height:9rem}
 #card{background:rgba(4,5,5,.92);justify-content:flex-start;cursor:pointer}
 #pause{z-index:10}
+.lb{position:fixed;left:0;right:0;height:0;background:#000;pointer-events:none}
+#lbT{top:0}#lbB{bottom:0}
 .overlay{z-index:6}
 #rotate{z-index:20;background:var(--void)}
 #touch{position:fixed;inset:0;pointer-events:none;z-index:5;touch-action:none;-webkit-user-select:none;user-select:none}
@@ -130,6 +132,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
 </style>
 
 <canvas id="c"></canvas>
+<div class="lb" id="lbT"></div><div class="lb" id="lbB"></div>
 <div id="subs"></div>
 <div id="prompt"></div>
 
@@ -165,7 +168,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v16 · 16.10.2026</p>
+  <p class="ver" id="ver">v17 · 17.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -248,7 +251,7 @@ const postMat = new THREE.ShaderMaterial({
     uFlashColor: { value: new THREE.Color(1, 1, 1) }, uRes: { value: new THREE.Vector2(1, 1) },
     uInvProj: { value: new THREE.Matrix4() }, uCamW: { value: new THREE.Matrix4() }, uCamPos: { value: new THREE.Vector3() },
     uVol: { value: 0 }, uVolCol: { value: new THREE.Color() }, uLights: { value: [0, 1, 2, 3, 4, 5].map(() => new THREE.Vector4(0, -100, 0, 0)) },
-    uWall: { value: new THREE.Vector4(-48, 48, -282, -116) }, uWallOn: { value: 0 }
+    uWall: { value: new THREE.Vector4(-48, 48, -282, -116) }, uWallOn: { value: 0 }, uHurt: { value: 0 }, uHurtDir: { value: new THREE.Vector2(0, 0) }
   },
   defines: { VSTEPS: TOUCH ? 6 : 10 },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
@@ -256,7 +259,7 @@ const postMat = new THREE.ShaderMaterial({
     uniform sampler2D tDiffuse, tDepth; uniform float uNear, uFar, uFogD;
     uniform float uTime, uTunnel, uRed, uGrain, uAberr, uFade, uFlash;
     uniform vec3 uFlashColor; uniform vec2 uRes; varying vec2 vUv;
-    uniform mat4 uInvProj, uCamW; uniform vec3 uCamPos, uVolCol; uniform float uVol, uWallOn; uniform vec4 uLights[6]; uniform vec4 uWall;
+    uniform mat4 uInvProj, uCamW; uniform vec3 uCamPos, uVolCol; uniform float uVol, uWallOn, uHurt; uniform vec2 uHurtDir; uniform vec4 uLights[6]; uniform vec4 uWall;
     float h3(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
     float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
       return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),
@@ -355,6 +358,13 @@ const postMat = new THREE.ShaderMaterial({
       outc = mix(outc, vec3(0.16, 0.11, 0.07) * 0.6, burn * 0.85);
       float tr = mix(1.25, 0.06, uTunnel);
       outc *= 1.0 - smoothstep(tr - 0.38, tr, d);
+      if (uHurt > 0.001) {
+        vec2 cd = c * vec2(aspect, 1.0);
+        float side = dot(cd / max(length(cd), 1e-3), uHurtDir);
+        float hv = smoothstep(0.3, 0.9, d + (fbm(pv * 4.0 + uTime * 0.4) - 0.5) * 0.3 + side * 0.2);
+        float hk = clamp(uHurt * hv * 1.3, 0.0, 0.92) * (0.65 + 0.35 * hatch(sp, 0.8, 4.0, 0.3));
+        outc = mix(outc, vec3(0.42, 0.02, 0.02) * (0.75 + 0.25 * noise(sp * 0.05)), hk);
+      }
       outc += (hash(vUv * uRes + fract(uTime * 7.13) * 91.0) - 0.5) * uGrain * 0.6;
       outc += step(0.9988, hash(floor(vUv * vec2(300.0, 170.0)) + floor(uTime * 11.0))) * 0.1;
       outc = mix(outc, vec3(1.0, 0.98, 0.93), glowEye);
@@ -368,7 +378,7 @@ const postScene = new THREE.Scene();
 const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
 const P = postMat.uniforms;
-const fx = { tunnel: 0, red: 0, aberr: 0, fade: 1, flash: 0, tunnelAdd: 0 };
+const fx = { tunnel: 0, red: 0, aberr: 0, fade: 1, flash: 0, tunnelAdd: 0, hurt: 0, muffle: 0 };
 
 function resize() {
   const w = innerWidth, h = innerHeight;
@@ -646,6 +656,15 @@ function initAudio() {
   S.chimePan = panner(5); S.chimePan.connect(S.world); S.chimePan.connect(g(0.6, S.rev));
   S.gPan = panner(2); S.gPan.connect(S.world); S.gPan.connect(g(0.3, S.rev));
   S.humPan = panner(6); S.humPan.connect(S.world); S.humPan.connect(g(0.9, S.rev));
+  S.mv = [0, 1, 2, 3, 4, 5].map(() => {
+    const pn = new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: 2.5, maxDistance: 60, rolloffFactor: 1.35 });
+    pn.connect(S.world); pn.connect(g(0.22, S.rev));
+    const breath = g(0, pn), bm = g(0.9);
+    loopNoise(S.brown).connect(biq('bandpass', mr(320, 460), 1.4)).connect(bm).connect(breath);
+    const lfo = AC.createOscillator(); lfo.frequency.value = mr(0.22, 0.45); lfo.connect(g(0.85)).connect(bm.gain); lfo.start();
+    const hiss = g(0, pn); loopNoise(S.pink).connect(biq('bandpass', mr(2200, 3000), 2)).connect(hiss);
+    return { pn, breath, hiss, wh: new Whispers(pn, 2, false, 2.4) };
+  });
   /* calmPad, drone and glass are driven by the music engine layers; kept as silent nodes for older call sites */
   S.calmPad = g(0); S.drone = g(0); S.glass = g(0);
 }
@@ -1809,40 +1828,62 @@ function shadeGeo(geo, colorAt, amb = 0.26) {
   geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
   return geo;
 }
-/* A drawn hand, palm up, with a sleeve running down out of frame. Local frame: fingers point to -z, thumb on the +x side
-   for a right hand (mirrored for the left). Curl closes every finger together; the heart hand closes harder when it hides. */
-const SKIN_C = [0.5, 0.44, 0.41], BLOOD_C = [0.42, 0.07, 0.07], SLEEVE_C = [0.17, 0.15, 0.14];
+/* Drawn hands: long bony fingers, knuckles and dark nails, flat two-tone shading so the ink pass hatches them in bands,
+   and a ragged wool sleeve running down out of frame. Local frame: fingers point to -z, palm up, thumb on +x for a right hand. */
+const SKIN_C = [0.68, 0.64, 0.58], BLOOD_C = [0.45, 0.06, 0.06], SLEEVE_C = [0.2, 0.18, 0.17], NAIL_C = [0.28, 0.24, 0.22];
 const handSkin = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false });
+function toonGeo(geo, base, amb = 0.46) {
+  geo.computeVertexNormals();
+  const pa = geo.attributes.position, na = geo.attributes.normal, cols = [], n = new THREE.Vector3(), p = new THREE.Vector3();
+  for (let i = 0; i < pa.count; i++) {
+    n.fromBufferAttribute(na, i); p.fromBufferAttribute(pa, i);
+    const c = typeof base === 'function' ? base(p, n) : base;
+    const dif = n.dot(HEART_L);
+    const k = dif > 0.4 ? 1 : dif > 0.0 ? 0.72 : amb;
+    cols.push(c[0] * k, c[1] * k, c[2] * k);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  return geo;
+}
 function makeHand(right, bloody) {
   const sx = right ? 1 : -1;
-  const skinAt = bloody ? (p => (Math.sin(p.x * 180 + 1.7) * Math.sin(p.z * 150) + Math.sin(p.y * 120)) > 1.62 ? BLOOD_C : SKIN_C) : () => SKIN_C;
+  const skinAt = bloody ? (p => (p.y > 0.004 && p.z > -0.035 && Math.sin(p.x * 140 + 1.3) * Math.sin(p.z * 160) > 0.62) ? BLOOD_C : SKIN_C) : () => SKIN_C;
   const gp = new THREE.Group();
-  const palm = new THREE.Mesh(shadeGeo(new THREE.SphereGeometry(1, 22, 14).scale(0.046, 0.017, 0.052), skinAt), handSkin); gp.add(palm);
-  const heel = new THREE.Mesh(shadeGeo(new THREE.SphereGeometry(1, 16, 10).scale(0.036, 0.02, 0.03), skinAt), handSkin); heel.position.set(0.004 * sx, -0.003, 0.03); gp.add(heel);
-  const segGeo = (r, len) => shadeGeo(new THREE.CapsuleGeometry(r, len, 4, 10).rotateX(-Math.PI / 2).translate(0, 0, -len / 2), skinAt);
+  const mesh = (geo, col, parent = gp) => { const m = new THREE.Mesh(toonGeo(geo, col), handSkin); parent.add(m); return m; };
+  mesh(new THREE.SphereGeometry(1, 20, 12).scale(0.04, 0.012, 0.047), skinAt);
+  mesh(new THREE.SphereGeometry(1, 14, 10).scale(0.03, 0.016, 0.026).translate(0.006 * sx, -0.003, 0.03), skinAt);
   const joints = [];
-  const finger = (pos, lens, r, yaw, roll = 0) => {
-    let parent = new THREE.Group(); parent.position.copy(pos); parent.rotation.set(0, yaw, roll); gp.add(parent);
+  const finger = (pos, lens, r, yaw) => {
+    let parent = new THREE.Group(); parent.position.copy(pos); parent.rotation.set(0, yaw, 0); gp.add(parent);
     const chain = [];
     lens.forEach((l, i) => {
       const j = new THREE.Group(); parent.add(j); chain.push(j);
-      j.add(new THREE.Mesh(segGeo(r - i * 0.0012, l), handSkin));
-      const nx = new THREE.Group(); nx.position.z = -l - 0.001; j.add(nx);
+      const ri = r - i * 0.0011;
+      mesh(new THREE.CapsuleGeometry(ri, l, 3, 8).rotateX(-Math.PI / 2).translate(0, 0, -l / 2), skinAt, j);
+      mesh(new THREE.SphereGeometry(ri * 1.18, 8, 6), skinAt, j);
+      if (i === lens.length - 1) { const nail = mesh(new THREE.SphereGeometry(1, 8, 6).scale(ri * 0.8, ri * 0.35, ri * 1.3), NAIL_C, j); nail.position.set(0, ri * 0.75, -l * 0.85); }
+      const nx = new THREE.Group(); nx.position.z = -l; j.add(nx);
       parent = nx;
     });
     return chain;
   };
-  [[-0.028, [0.032, 0.024, 0.019], 0.08], [-0.009, [0.037, 0.027, 0.021], 0.02], [0.01, [0.035, 0.026, 0.02], -0.03], [0.028, [0.028, 0.02, 0.016], -0.1]]
-    .forEach(([x, l, yaw]) => joints.push({ chain: finger(new THREE.Vector3(x * sx, 0.002, -0.044), l, 0.0088, yaw * sx), w: [1, 1, 1] }));
-  joints.push({ chain: finger(new THREE.Vector3(0.042 * sx, -0.002, -0.004), [0.028, 0.024], 0.0098, -0.75 * sx, 0.5 * sx), w: [0.55, 0.7], thumb: true });
-  const arm = new THREE.Mesh(shadeGeo(new THREE.CylinderGeometry(0.026, 0.03, 0.12, 16).rotateX(Math.PI / 2).translate(0, 0, 0.09), skinAt), handSkin); gp.add(arm);
-  const sleeve = new THREE.Mesh(shadeGeo(new THREE.CylinderGeometry(0.045, 0.06, 0.42, 18).rotateX(Math.PI / 2).translate(0, 0, 0.35), () => SLEEVE_C, 0.3), handSkin); gp.add(sleeve);
-  const cuff = new THREE.Mesh(shadeGeo(new THREE.TorusGeometry(0.044, 0.008, 6, 20), () => SLEEVE_C, 0.3), handSkin); gp.add(cuff);
-  const tilt = 0.45; arm.rotation.x = sleeve.rotation.x = cuff.rotation.x = tilt; cuff.position.set(0, -0.14 * Math.sin(tilt), 0.14 * Math.cos(tilt));
+  [[-0.026, [0.04, 0.03, 0.024], 0.07], [-0.009, [0.046, 0.034, 0.026], 0.02], [0.009, [0.044, 0.032, 0.025], -0.03], [0.025, [0.034, 0.025, 0.02], -0.1]]
+    .forEach(([x, l, yaw]) => joints.push({ chain: finger(new THREE.Vector3(x * sx, 0.002, -0.042), l, 0.0072, yaw * sx), w: [1, 1, 1] }));
+  joints.push({ chain: finger(new THREE.Vector3(0.038 * sx, -0.002, -0.006), [0.032, 0.026], 0.0085, -0.8 * sx), w: [0.55, 0.7] });
+  const tilt = 0.45;
+  const wrist = mesh(new THREE.CylinderGeometry(0.018, 0.024, 0.13, 12).rotateX(Math.PI / 2).translate(0, 0, 0.09), skinAt); wrist.rotation.x = tilt;
+  const bone = mesh(new THREE.SphereGeometry(0.008, 8, 6), skinAt); bone.position.set(-0.016 * sx, 0.006, 0.05);
+  const slv = new THREE.CylinderGeometry(0.04, 0.06, 0.46, 16, 6, true).rotateX(Math.PI / 2).translate(0, 0, 0.37);
+  { const pa = slv.attributes.position; for (let i = 0; i < pa.count; i++) if (pa.getZ(i) < 0.15) pa.setZ(i, pa.getZ(i) + (Math.sin(Math.atan2(pa.getY(i), pa.getX(i)) * 7) * 0.5 + 0.5) * 0.03); }
+  const sleeve = mesh(slv, SLEEVE_C); sleeve.rotation.x = tilt; sleeve.material = new THREE.MeshBasicMaterial({ vertexColors: true, fog: false, side: THREE.DoubleSide });
+  for (const a of [0.6, 2.4]) {
+    const rag = mesh(new THREE.BoxGeometry(0.012, 0.004, 0.06).translate(0, 0, -0.03), SLEEVE_C);
+    rag.position.set(Math.cos(a) * 0.042, -0.06 * Math.sin(tilt) + Math.sin(a) * 0.04 - 0.01, 0.14 * Math.cos(tilt)); rag.rotation.x = tilt + 0.4;
+  }
   return {
     gp,
     curl(k, jitter = 0) {
-      for (const f of joints) f.chain.forEach((j, i) => { j.rotation.x = k * f.w[i] * (i === 0 ? 0.9 : 1.05) + jitter * Math.sin(gt * 23 + i * 2 + f.chain.length); });
+      for (const f of joints) f.chain.forEach((j, i) => { j.rotation.x = k * f.w[i] * (i === 0 ? 0.85 : 1.05) + jitter * Math.sin(gt * 23 + i * 2 + f.chain.length); });
     }
   };
 }
@@ -2108,10 +2149,11 @@ function updatePlayer(dt) {
   player.stamina = clamp(player.stamina + (sprint ? -dt / 5 : dt / 7), 0, 1);
   const fxv = -Math.sin(player.yaw), fzv = -Math.cos(player.yaw), rxv = Math.cos(player.yaw), rzv = -Math.sin(player.yaw);
   const tvx = len ? (fxv * iz + rxv * ix) / len * sp : 0, tvz = len ? (fzv * iz + rzv * ix) / len * sp : 0;
-  player.vx = damp(player.vx, tvx, 9, dt); player.vz = damp(player.vz, tvz, 9, dt);
+  const acc = player.canMove ? 9 : 2.4;
+  player.vx = damp(player.vx, tvx, acc, dt); player.vz = damp(player.vz, tvz, acc, dt);
   const speed = Math.hypot(player.vx, player.vz);
   player.moving = speed > 0.4;
-  if (player.canMove) { player.x += player.vx * dt; player.z += player.vz * dt; collide(); }
+  if (player.canMove || (!player.seated && !W.inBooth && speed > 0.05)) { player.x += player.vx * dt; player.z += player.vz * dt; collide(); }
   if (player.moving && player.canMove) {
     player.bob += dt * speed * 2.1;
     player.stepAcc += speed * dt;
@@ -2184,6 +2226,28 @@ async function card(kicker, title, paras, objective) {
   hush();
   if (paused) setPaused(false);
   $('card').hidden = true;
+}
+
+/* ---------- cinematic helpers ---------- */
+/* Control is taken back gently: black bars slide in, the player glides to a stop and the head turns toward what matters. */
+const cine = { k: 0, last: '' };
+const easeIO = t => t * t * (3 - 2 * t);
+function letterbox(on, dur = 1.2) { return tween(cine, 'k', on ? 1 : 0, dur, easeIO); }
+function cineLook(x, y, z, dur) {
+  const dx = x - player.x, dz = z - player.z;
+  let d = Math.atan2(-dx, -dz) - player.yaw;
+  while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+  tween(player, 'yaw', player.yaw + d, dur, easeIO);
+  return tween(player, 'pitch', clamp(Math.atan2(y - (player.y + player.eye), Math.hypot(dx, dz)), -0.8, 0.8), dur, easeIO);
+}
+/* a heavy breaker thrown somewhere out there: the click comes from where the light dies */
+function breaker(x, z) {
+  if (!AC) return;
+  const t = AC.currentTime, pn = panner(12); placePanner(pn, x, 4, z); pn.connect(S.world); pn.connect(g(0.6, S.rev));
+  burst(t, { dur: 0.04, amp: 1, type: 'highpass', freq: 1600, Q: 0.7, dest: pn });
+  thump(t, 1, 58, pn, 0.28);
+  burst(t + 0.01, { dur: 0.35, amp: 0.4, type: 'lowpass', freq: 380, buf: S.brown, dest: pn });
+  setTimeout(() => pn.disconnect(), 4000);
 }
 
 /* ---------- sequences ---------- */
@@ -2292,7 +2356,15 @@ async function fuite() {
   quay1.set(0.85);
   hemi.intensity = 0.08;
   setG(S.wind, 0.18, 2);
+  busy = true; player.yaw = 0; player.pitch = -0.02;
+  W.pIntro = { on: pockets.map(() => 1), quay: 1 };
+  W.dark = 0;
+  await wait(2.2);
+  W.pIntro.quay = 0; breaker(1.5, LAMP1_Z);
+  await wait(0.7);
+  for (let i = pockets.length - 1; i >= 1; i--) { W.pIntro.on[i] = 0; breaker(pockets[i].x, pockets[i].z); await wait(i > 4 ? 0.42 : 0.55); }
   await wait(0.9);
+  busy = false;
   player.canMove = true;
   promptFor(loc('fuite.prompt.move'), 7);
   compass.shown = true;
@@ -2301,15 +2373,19 @@ async function fuite() {
   await wait(6);
   say(loc('fuite.light'), 3.5, 'mono');
   await until(() => W.fuiteDone);
-  MUS.set('silence');
   player.canMove = false;
+  letterbox(true, 1.4);
+  MUS.set('silence');
   W.whisper = 0.05;
-  tween(player, 'eye', 1.0, 1.6);
-  tween(fx, 'tunnel', 0.1, 2);
-  H.bpm = 150; H.amp = 0.8; H.jitter = 0.2;
-  await wait(2.4);
-  await tween(fx, 'fade', 1, 2.2);
+  cineLook(1.0, 4.4, quay1.gp.position.z - 1.5, 2.4);
+  tween(player, 'eye', 1.0, 3.2);
+  tween(fx, 'tunnel', 0.1, 2.5);
+  H.bpm = 125; H.amp = 0.7; H.jitter = 0.08; tween(H, 'bpm', 68, 4.5);
+  if (AC) setG(S.rain, 0.03, 3);
+  await wait(3.2);
+  await tween(fx, 'fade', 1, 3.4);
   H.on = false;
+  letterbox(false, 0.01);
 }
 
 function respawnFuite() {
@@ -2345,9 +2421,10 @@ function updateFuite(dt) {
       if (Math.hypot(player.x - p.x, player.z - p.z) < p.r * Math.max(0.35, p.scale)) inPocket = true;
     }
     let target = 0;
-    if (p.state === 'active') target = p.scale;
+    if (W.pIntro) target = W.pIntro.on[i] ? (i === 0 ? 0.75 : 1) : 0;
+    else if (p.state === 'active') target = p.scale;
     else if (p.state === 'idle' && i <= W.ci + 2) target = i === W.ci + 1 ? 0.45 : 0.18;
-    p.vis = damp(p.vis, target, 3, dt);
+    p.vis = W.pIntro && !W.pIntro.on[i] ? Math.min(p.vis, 0.02) : damp(p.vis, target, 3, dt);
     const flick = 0.92 + 0.08 * Math.sin(gt * 13 + i);
     p.shaft.material.uniforms.uOp.value = 0.26 * p.vis * flick;
     p.disc.material.opacity = 0.55 * p.vis;
@@ -2383,7 +2460,9 @@ function updateFuite(dt) {
   player.fovT = 70 + (receding ? 30 : 6) * smooth(0.5, 0.95, W.dark);
   if (!busy && dl < 4.5 && W.recede < 6) W.fuiteDone = true;
 
-  lampFlicker(quay1, 0.85, W.dark > 0.6 ? (W.dark - 0.6) : 0);
+  if (W.pIntro && W.ci >= 0) W.pIntro = null;
+  W.quayK = W.pIntro ? W.pIntro.quay : damp(W.quayK ?? 1, 1, 0.5, dt);
+  lampFlicker(quay1, 0.85 * W.quayK, W.dark > 0.6 ? (W.dark - 0.6) : 0);
   const lit = inPocket ? 1 : nearLamp ? 0.8 : 0;
   W._lit = damp(W._lit ?? 0, lit, 2, dt);
   W.fogC.copy(FOG_DARK).lerp(FOG_LIT, W._lit * (1 - W.dark * 0.6));
@@ -2591,6 +2670,7 @@ async function exitBooth() {
 
 async function pickup(f) {
   busy = true; player.canMove = false; W.memory = true; C.freeze = true;
+  letterbox(true, 0.9);
   f.taken = true; f.gp.visible = false;
   pad(AC.currentTime);
   P.uFlashColor.value.setRGB(0.9, 0.9, 0.86); fx.flash = 0.35; tween(fx, 'flash', 0, 2.2);
@@ -2599,6 +2679,7 @@ async function pickup(f) {
   W.fragIndex++;
   W.checkpoint = { x: player.x, z: player.z, yaw: player.yaw };
   W.memory = false; C.freeze = false;
+  letterbox(false, 1.2);
   C.huntSpeed += 0.3; C.patrolSpeed += 0.2;
   W.fogExtra = (W.fogExtra || 0) + 0.006;
   player.canMove = true; busy = false;
@@ -2634,6 +2715,7 @@ async function caught() {
   C.yaw = C.ryaw = Math.atan2(player.x - C.x, player.z - C.z);
   C.jump = true; player.pitch = 0.04;
   sting(AC.currentTime, 1); scream(AC.currentTime + 0.05); boom(AC.currentTime);
+  fx.hurt = 1; tween(fx, 'hurt', 0, 3); P.uHurtDir.value.set(0, 0);
   player.shake = 1.2;
   await wait(0.55);
   P.uFlashColor.value.setRGB(0.5, 0.0, 0.0); fx.flash = 0.8;
@@ -2739,7 +2821,7 @@ function updateCreature(dt) {
   }
   const mx = C.tx - C.x, mz = C.tz - C.z, md = Math.hypot(mx, mz);
   const stepLen = Math.min(sp * dt, md);
-  if (md > 0.01) { C.x += mx / md * stepLen; C.z += mz / md * stepLen; }
+  if (md > 0.01) { const [ax, az] = avoidDir(C.x, C.z, mx / md, mz / md, 0.5); C.x += ax * stepLen; C.z += az * stepLen; pushOut(C, 0.5); }
   C.x = clamp(C.x, -50, 50); C.z = clamp(C.z, -286, -110);
   const lz = inLight(C.x, C.z, 1.5);
   if (lz) { const ox = C.x - lz.x, oz = C.z - lz.z, od = Math.hypot(ox, oz) || 1; C.x = lz.x + ox / od * (lz.r + 1.5); C.z = lz.z + oz / od * (lz.r + 1.5); }
@@ -2948,7 +3030,7 @@ function flare() {
    Wandering, they show half-closed slits of light; once they notice you the eyes widen, then the mouth tears open and they slide at you.
    Their number grows with every memory and with the distance covered toward the next one. */
 const SWARM = [];
-for (let i = 0; i < 14; i++) SWARM.push({ h: makeGhost('blob', smokeMat(0x433d35, 1.25)), kind: 'blob', active: false });
+for (let i = 0; i < 18; i++) SWARM.push({ h: makeGhost('blob', smokeMat(0x433d35, 1.25)), kind: 'blob', active: false });
 for (let i = 0; i < 4; i++) SWARM.push({ h: makeGhost('crawler', smokeMat(0x3d3730, 1.3)), kind: 'crawler', active: false });
 SWARM.push({ h: makeGhost('echo', smokeMat(0x48423a, 1.2)), kind: 'echo', active: false });
 const SW = { nextSpawn: 0, nextWander: 0, fear: 0, echoSing: 0 };
@@ -2961,14 +3043,14 @@ function density() {
   const total = Math.hypot(t.x - p.x, t.z - p.z) || 1, left = Math.hypot(t.x - player.x, t.z - player.z);
   return W.fragIndex + 0.85 * clamp(1 - left / total, 0, 1);
 }
-const quota = dn => ({ blob: Math.round(1 + dn * 2.2), crawler: dn < 1 ? 0 : Math.min(3, Math.floor(dn)), echo: dn >= 2 && !W.finalOn ? 1 : 0 });
+const quota = dn => ({ blob: Math.round(3 + dn * 2.6), crawler: dn < 0.5 ? 0 : Math.min(4, 1 + Math.floor(dn)), echo: dn >= 2 && !W.finalOn ? 1 : 0 });
 function spawnEnemy(kind, ang, dist, st = 'chase') {
   const e = SWARM.find(s => !s.active && s.kind === kind); if (!e) return null;
   const a = ang ?? mr(0, Math.PI * 2), d = dist ?? mr(16, 24);
   const x = clamp(player.x + Math.sin(a) * d, bounds.x0 + 4, bounds.x1 - 4), z = clamp(player.z + Math.cos(a) * d, bounds.z0 + 4, bounds.z1 - 4);
   if (inLight(x, z, 2)) return null;
   Object.assign(e, { active: true, x, z, hx: x, hz: z, tx: x, tz: z, yaw: mr(0, 6.28), phase: mr(0, 6), op: 0, dying: 0, vx: 0, vz: 0, ashed: false,
-    st, t: 0, lost: 0, still: 0, eye: st === 'chase' ? 1.3 : 0.3, mouth: st === 'chase' ? 1 : 0, lastX: player.x, lastZ: player.z,
+    st, t: 0, lost: 0, still: 0, pause: 0, flank: mr(-0.75, 0.75), eye: st === 'chase' ? 1.3 : 0.3, mouth: st === 'chase' ? 1 : 0, lastX: player.x, lastZ: player.z,
     scale: (kind === 'crawler' ? 0.9 : kind === 'echo' ? 1.05 : 0.8) * growth() });
   e.h.gp.visible = true; e.h.gp.scale.setScalar(e.scale); setEyes(e.h, 1);
   if (st === 'chase') ashBurst(x, groundH(x, z) + 0.2, z, 50, 0.8, 1.2);
@@ -2980,8 +3062,23 @@ function killEnemy(e, push) {
   if (push) { const dx = e.x - player.x, dz = e.z - player.z, d = Math.hypot(dx, dz) || 1; e.vx = dx / d * 9; e.vz = dz / d * 9; }
   if (AC) burst(AC.currentTime, { dur: 0.3, amp: 0.2, freq: 500, Q: 1 });
 }
-function hurt(a) {
+function hitFx(src) {
+  if (src) {
+    const dx = src.x - player.x, dz = src.z - player.z, rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw), fx2 = -Math.sin(player.yaw), fz2 = -Math.cos(player.yaw);
+    const sxv = dx * rx + dz * rz, syv = dx * fx2 + dz * fz2, n = Math.hypot(sxv, syv) || 1;
+    P.uHurtDir.value.set(sxv / n, -syv / n * 0.5);
+    player.yaw -= sxv / n * 0.06;
+    const pushK = 2.2 / (Math.hypot(dx, dz) || 1); player.vx -= dx * pushK; player.vz -= dz * pushK;
+  } else P.uHurtDir.value.set(0, 0);
+  fx.hurt = 1; tween(fx, 'hurt', 0, 1.6);
+  fx.muffle = 1; tween(fx, 'muffle', 0, 1.4);
+  player.pitch += 0.07; W.hitstop = Math.max(W.hitstop || 0, 0.07);
+  if (AC) { S.tinn.gain.setValueAtTime(0.05, AC.currentTime); setG(S.tinn, 0, 1.2); }
+  H.bpm = Math.min(190, H.bpm + 35);
+}
+function hurt(a, src) {
   SW.fear += a;
+  hitFx(src);
   player.shake = Math.max(player.shake, 0.9); tween(player, 'shake', 0, 0.5);
   P.uFlashColor.value.setRGB(0.45, 0, 0); fx.flash = 0.35; tween(fx, 'flash', 0, 0.6);
   if (AC) { scream(AC.currentTime); thump(AC.currentTime, 0.8, 45, S.world, 0.4); }
@@ -3017,6 +3114,23 @@ function screech(e) {
   burst(AC.currentTime, { dur: 0.5, amp: 0.35, freq: e.kind === 'blob' ? 1700 : 900, Q: 4, dest: S.gPan, attack: 0.02 });
   rasp(AC.currentTime + 0.05, S.gPan);
 }
+/* steer around trunks and rocks: probe ahead and bend the heading away from what is in the way */
+function avoidDir(x, z, mx, mz, rad) {
+  let ax = 0, az = 0;
+  const px = x + mx * 1.3, pz = z + mz * 1.3;
+  forNear(px, pz, c => {
+    const dx = px - c.x, dz = pz - c.z, d = Math.hypot(dx, dz), m = c.r + rad + 0.5;
+    if (d < m && d > 1e-4) { const k = (m - d) / m; ax += dx / d * k; az += dz / d * k; }
+  });
+  const nx = mx + ax * 2, nz = mz + az * 2, n = Math.hypot(nx, nz) || 1;
+  return [nx / n, nz / n];
+}
+function pushOut(o, rad) {
+  forNear(o.x, o.z, c => {
+    const dx = o.x - c.x, dz = o.z - c.z, d = Math.hypot(dx, dz), m = c.r + rad;
+    if (d < m && d > 1e-4) { o.x = c.x + dx / d * m; o.z = c.z + dz / d * m; }
+  });
+}
 function updateSwarm(dt) {
   const playing = (state === 'tristesse' || state === 'final') && !W.done2;
   const dn = playing && C.introduced ? density() : 0;
@@ -3025,13 +3139,13 @@ function updateSwarm(dt) {
     const q = quota(dn);
     const count = k => SWARM.filter(e => e.active && !e.dying && e.kind === k && e.st !== 'chase').length;
     if (gt > SW.nextWander) {
-      SW.nextWander = gt + mr(1.2, 2.5);
+      SW.nextWander = gt + mr(0.8, 1.8);
       for (const k of ['blob', 'crawler', 'echo']) {
         if (count(k) >= q[k]) continue;
         const t = currentTarget(), toT = Math.atan2(t.x - player.x, t.z - player.z);
         if (k === 'crawler') spawnEnemy(k, toT + mr(-0.5, 0.5), mr(14, 22), 'wander');
         else if (k === 'echo') spawnEnemy(k, toT + (Math.random() < 0.5 ? -1 : 1) * mr(0.9, 1.4), mr(20, 26), 'wander');
-        else spawnEnemy(k, (Math.random() < 0.6 ? -player.yaw + Math.PI : 0) + mr(-1.2, 1.2) + (Math.random() < 0.6 ? 0 : mr(0, 6.28)), mr(20, 34), 'wander');
+        else spawnEnemy(k, Math.random() < 0.65 ? player.yaw + Math.PI + mr(-0.9, 0.9) : mr(0, 6.28), mr(17, 32), 'wander');
         break;
       }
     }
@@ -3059,9 +3173,13 @@ function updateSwarm(dt) {
       const sense = perceives(e, d);
       let sp = 0, faceX = dx, faceZ = dz;
       if (e.st === 'wander') {
-        if (Math.hypot(e.tx - e.x, e.tz - e.z) < 1 || e.t > 9) { e.t = 0; e.tx = e.hx + mr(-6, 6); e.tz = e.hz + mr(-6, 6); }
-        sp = e.kind === 'crawler' ? 0.25 : e.kind === 'echo' ? 0 : 0.45;
+        if (Math.hypot(e.tx - e.x, e.tz - e.z) < 1 || e.t > 12) {
+          const a = mr(0, 6.28), r = mr(6, 15); e.t = 0; e.tx = e.hx + Math.sin(a) * r; e.tz = e.hz + Math.cos(a) * r;
+          e.pause = Math.random() < 0.35 ? mr(1, 3.5) : 0;
+        }
+        sp = e.kind === 'crawler' ? 0.45 : e.kind === 'echo' ? 0 : 0.8;
         faceX = e.tx - e.x; faceZ = e.tz - e.z;
+        if (e.pause > 0) { e.pause -= dt; sp = 0; const la = e.yaw + Math.sin(gt * 0.6 + e.phase) * 1.2; faceX = Math.sin(la); faceZ = Math.cos(la); }
         if (e.kind === 'echo') {
           faceX = dx; faceZ = dz;
           W.echoLure = Math.max(W.echoLure, 1 - smooth(8, 22, d));
@@ -3074,12 +3192,15 @@ function updateSwarm(dt) {
         e.eye = damp(e.eye, 0.85, 8, dt); e.mouth = damp(e.mouth, 0.15, 6, dt);
         const hold = e.kind === 'crawler' ? 0.6 : e.kind === 'echo' ? 0.4 : 1.0;
         if (e.t > hold) {
-          if (perceives(e, d) || d < 5) { e.st = 'chase'; e.t = 0; e.lost = 0; e.still = 0; screech(e); W.danger = Math.max(W.danger, 0.6); }
+          if (perceives(e, d) || d < 5) {
+            e.st = 'chase'; e.t = 0; e.lost = 0; e.still = 0; screech(e); W.danger = Math.max(W.danger, 0.6);
+            for (const o of SWARM) if (o !== e && o.active && !o.dying && o.st === 'wander' && o.kind !== 'echo' && Math.hypot(o.x - e.x, o.z - e.z) < 14) { o.st = 'alert'; o.t = 0.5; }
+          }
           else { e.st = 'wander'; e.t = 0; }
         }
       } else {
         e.eye = damp(e.eye, 1.35, 10, dt); e.mouth = damp(e.mouth, 1, 8, dt);
-        if (sense) { e.lastX = player.x; e.lastZ = player.z; e.lost = 0; } else e.lost += dt;
+        if (sense || (W.inRefuge && d < 22)) { e.lastX = player.x; e.lastZ = player.z; e.lost = 0; } else e.lost += dt;
         if (e.kind === 'crawler') {
           e.still = player.moving ? 0 : e.still + dt;
           if (e.still > 0.7) { e.lost = 99; }
@@ -3089,15 +3210,34 @@ function updateSwarm(dt) {
         if (e.lost > 0) { faceX = e.lastX - e.x; faceZ = e.lastZ - e.z; }
         if (e.lost > 3 || d > 26) { e.st = 'wander'; e.t = 0; e.hx = e.x; e.hz = e.z; e.tx = e.x; e.tz = e.z; }
       }
-      const fd = Math.hypot(faceX, faceZ) || 1;
-      let mx = faceX / fd, mz = faceZ / fd;
-      if (e.kind === 'blob' && e.st === 'chase') { const side = Math.sin(gt * 1.7 + e.phase) * 0.35; const ox = mx; mx -= mz * side; mz += ox * side; }
+      let gx = faceX, gz = faceZ;
+      if (e.st === 'chase' && e.lost === 0 && sp > 0) {
+        const lead = Math.min(d / sp, 0.8);
+        gx = player.x + player.vx * lead - e.x; gz = player.z + player.vz * lead - e.z;
+        const fl = e.flank * smooth(3, 14, d), c0 = Math.cos(fl), s0 = Math.sin(fl);
+        [gx, gz] = [gx * c0 - gz * s0, gx * s0 + gz * c0];
+        const ref = inLight(player.x, player.z);
+        if (ref) {
+          /* it cannot enter the light, so it circles at the edge and waits for it to die */
+          const ox = e.x - ref.x, oz = e.z - ref.z, R = ref.r + 2.2;
+          const ang = Math.atan2(ox, oz) + (e.flank >= 0 ? 0.35 : -0.35);
+          gx = ref.x + Math.sin(ang) * R - e.x; gz = ref.z + Math.cos(ang) * R - e.z;
+          sp *= 0.45; faceX = dx; faceZ = dz;
+        }
+      }
+      const gd = Math.hypot(gx, gz) || 1;
+      const [mx, mz] = avoidDir(e.x, e.z, gx / gd, gz / gd, 0.5 * e.scale);
       e.x += mx * sp * dt; e.z += mz * sp * dt;
-      if (inLight(e.x, e.z, 1)) killEnemy(e, false);
+      pushOut(e, 0.45 * e.scale);
+      for (const o of SWARM) if (o !== e && o.active && !o.dying) {
+        const sx2 = e.x - o.x, sz2 = e.z - o.z, sd = Math.hypot(sx2, sz2), m = 0.6 * (e.scale + o.scale);
+        if (sd < m && sd > 1e-4) { e.x += sx2 / sd * (m - sd) * 0.5; e.z += sz2 / sd * (m - sd) * 0.5; }
+      }
+      if (inLight(e.x, e.z, 0.3)) killEnemy(e, false);
       let dy = Math.atan2(faceX, faceZ) - e.yaw; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
       e.yaw += dy * Math.min(1, dt * (e.st === 'wander' ? 1.5 : 8));
       const reach = (e.kind === 'crawler' ? 0.9 : 0.7) * e.scale + 0.35;
-      if (d < reach && e.st === 'chase' && !busy && !W.inRefuge) { killEnemy(e, false); hurt(e.kind === 'crawler' ? 0.45 : e.kind === 'echo' ? 0.4 : 0.3); }
+      if (d < reach && e.st === 'chase' && !busy && !W.inRefuge) { killEnemy(e, false); hurt(e.kind === 'crawler' ? 0.45 : e.kind === 'echo' ? 0.4 : 0.3, e); }
       if (e.st !== 'wander') W.danger = Math.max(W.danger || 0, (e.st === 'chase' ? 1 : 0.5) * (1 - smooth(3, 16, d)));
     }
     gp.position.set(e.x, groundH(e.x, e.z), e.z); gp.rotation.y = e.yaw;
@@ -3242,6 +3382,7 @@ function updateTristesse(dt) {
 
 async function finishTristesse() {
   W.done2 = true; busy = true; player.canMove = false;
+  letterbox(true, 1.6); cineLook(1.0, 4.4, LAMP2_Z - 1.5, 2.6);
   C.aggressive = false; C.mode = 'patrol'; C.tx = C.x + (C.x - player.x) * 3; C.tz = C.z + (C.z - player.z) * 3;
   tween(C, 'op', 0, 3);
   W.finalOn = false;
@@ -3326,14 +3467,27 @@ function updateFog(dt) {
 }
 function updateAudio(dt) {
   updateListener();
-  S.whisp.update(dt, clamp(W.whisper, 0, 1.4));
+  const tenseMix = state === 'tristesse' || state === 'final';
+  S.whisp.update(dt, clamp(W.whisper, 0, 1.4) * (tenseMix ? 0.3 : 1));
+  if (S.mv) {
+    const near = tenseMix ? SWARM.filter(e => e.active && !e.dying).map(e => ({ e, d: Math.hypot(e.x - player.x, e.z - player.z) })).sort((a, b) => a.d - b.d) : [];
+    S.mv.forEach((v, i) => {
+      const it = near[i];
+      if (!it || it.d > 40) { setG(v.breath, 0, 0.3); setG(v.hiss, 0, 0.2); v.wh.update(dt, 0); return; }
+      const e = it.e, ch = e.st === 'chase' ? 1 : 0, al = e.st === 'alert' ? 1 : 0;
+      placePanner(v.pn, e.x, e.kind === 'crawler' ? 0.4 : 1.3, e.z);
+      setG(v.breath, (0.22 + 0.55 * ch + 0.3 * al) * e.op, 0.2);
+      setG(v.hiss, 0.14 * ch * e.op, 0.15);
+      v.wh.update(dt, (0.04 + 0.22 * al + 0.3 * ch) * e.op);
+    });
+  }
   W.whisper = Math.max(0, W.whisper);
   updateHeartAudio();
   const now = AC.currentTime;
   let lpf = 18000;
   if (W.inBooth) lpf = 900;
   if (W.memory) lpf = 500;
-  lpf = Math.min(lpf, lerp(18000, 600, W.edge || 0));
+  lpf = Math.min(lpf, lerp(18000, 600, W.edge || 0), lerp(18000, 450, fx.muffle));
   S.lp.frequency.setTargetAtTime(lpf, now, 0.2);
   const tense = state === 'tristesse' || state === 'final';
   const calm = W.calm || 0, dng = W.danger || 0;
@@ -3460,6 +3614,9 @@ function frame(now) {
   P.uAberr.value = fx.aberr;
   P.uFade.value = clamp(fx.fade, 0, 1);
   P.uFlash.value = clamp(fx.flash, 0, 1);
+  P.uHurt.value = clamp(Math.max(fx.hurt, (typeof SW !== 'undefined' ? SW.fear : 0) * 0.45), 0, 1);
+  const lbh = (cine.k * 11).toFixed(2) + 'vh';
+  if (lbh !== cine.last) { cine.last = lbh; $('lbT').style.height = $('lbB').style.height = lbh; }
   renderer.setRenderTarget(rt);
   renderer.render(scene, camera);
   renderer.setRenderTarget(null);
