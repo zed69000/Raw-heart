@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>try{if(!sessionStorage.getItem("rh_splash")){sessionStorage.setItem("rh_splash","1");document.documentElement.classList.add("splash");}}catch(e){document.documentElement.classList.add("splash");}</script>
 <style>
 /* Layout: one full-bleed WebGL canvas, sparse film-title overlays, no HUD while playing. */
 :root{
@@ -78,13 +79,22 @@ kbd{font-family:var(--mono);color:var(--ash);border:1px solid var(--smoke);paddi
 .page #cardBody{display:flex;flex-direction:column;gap:.7rem;min-height:9rem}
 #card{background:rgba(4,5,5,.92);justify-content:flex-start;cursor:pointer}
 #pause{z-index:10}
-#splash{position:fixed;inset:0;z-index:30;background:#050606;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;animation:splashOut .9s ease 2.6s forwards}
-#splash svg{width:min(46vw,42vh);height:auto;opacity:0;animation:splashIn 1s ease .2s forwards}
-#splash .studio{margin:.4rem 0 0;font-family:var(--mono);font-size:clamp(.9rem,3.2vh,1.3rem);letter-spacing:.42em;color:#e6dcc8;opacity:0;animation:splashIn 1s ease .6s forwards}
-#splash .presents{margin:0;font-size:.7rem;letter-spacing:.3em;color:var(--smoke);opacity:0;animation:splashIn 1s ease 1s forwards}
-#splash.skip{animation:splashOut .3s ease forwards}
-@keyframes splashIn{to{opacity:1}}
-@keyframes splashOut{to{opacity:0;visibility:hidden}}
+/* opening screen: the MusclorDuck studio as a lino print, as in Date Gravity, in Raw Heart's colours:
+   a small black duck, and on the wall its shadow, a colossus cut in red. A tap skips it. */
+#splash{display:none}
+html.splash #splash{position:fixed;inset:0;z-index:30;display:block;background:var(--void);animation:spOut .35s ease 2.45s forwards}
+.spBlock{position:absolute;left:7%;right:7%;top:6%;bottom:6%;border-radius:1rem;background:var(--paper);transform:rotate(-1.5deg);animation:spPress .4s cubic-bezier(.2,1.5,.4,1) both}
+#splash svg{position:absolute;left:50%;top:7%;height:56%;width:auto;transform:translateX(-50%);overflow:visible}
+.spFloor,.spSmall{animation:spFade .3s ease .3s both}
+.spTrail{animation:spFade .3s ease .55s both}
+.spBig{transform-box:fill-box;transform-origin:50% 100%;animation:spGrow .55s cubic-bezier(.2,1.5,.4,1) .6s both}
+.spName{position:absolute;left:0;right:0;top:63%;text-align:center;font:400 clamp(1.8rem,9vh,3.4rem)/.9 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink);animation:spPop .35s cubic-bezier(.2,1.7,.4,1) 1.15s both}
+.spTag{position:absolute;left:0;right:0;top:calc(63% + clamp(3.6rem,19vh,6.6rem));text-align:center;font:500 clamp(.75rem,3vh,1.1rem)/1 var(--mono);letter-spacing:.34em;text-indent:.34em;text-transform:uppercase;color:var(--ember);animation:spFade .3s ease 1.4s both}
+@keyframes spPress{from{transform:rotate(-1.5deg) scale(1.14);opacity:0}to{transform:rotate(-1.5deg);opacity:1}}
+@keyframes spFade{from{opacity:0}to{opacity:1}}
+@keyframes spGrow{from{transform:scale(.6,0);opacity:0}to{transform:none;opacity:1}}
+@keyframes spPop{from{transform:scale(1.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes spOut{to{opacity:0;visibility:hidden}}
 #life{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:calc(16px + env(safe-area-inset-left,0px));width:26px;height:24px;opacity:0;transition:opacity .8s;pointer-events:none;z-index:3}
 #life svg{width:100%;height:100%;overflow:visible}#life path{fill:#a3170f;stroke:#e6dcc8;stroke-width:1.4;transition:fill .3s}
 #life.hit path{fill:#f4efe4}
@@ -213,17 +223,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   <button id="again" type="button">Rejouer</button>
 </section>
 
-<section id="splash" aria-label="Musclor Duck">
-  <svg viewBox="0 0 240 200" aria-hidden="true" fill="none" stroke="#e6dcc8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M60 150C40 120 55 85 95 82C120 80 140 95 150 120C160 145 140 165 105 165C85 166 70 162 60 150Z"/>
-    <path d="M112 74C108 86 110 92 114 100"/><circle cx="128" cy="52" r="24"/>
-    <path d="M149 48C168 44 182 49 186 56C176 63 162 64 148 60Z" fill="#b3121b" stroke="#b3121b"/><circle cx="134" cy="45" r="3" fill="#e6dcc8"/>
-    <path d="M122 112C140 90 174 92 194 116"/><path d="M124 130C146 132 170 130 194 124"/><path d="M158 100C162 106 163 112 161 118"/>
-    <path d="M194 116C202 104 206 92 202 80"/><path d="M194 124C210 112 216 96 212 82"/><circle cx="207" cy="74" r="9"/>
-    <path d="M85 165L82 186M110 165L114 186M70 187H93M104 187H126"/>
-  </svg>
-  <p class="studio">MUSCLOR DUCK</p><p class="presents">présente</p>
-</section>
+<div id="splash" aria-hidden="true"><div class="spBlock"></div><svg viewBox="-74 -44 468 400" aria-hidden="true"><defs><filter id="spWob1" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9"/></filter><filter id="spWob2" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9"/></filter><filter id="spWob3" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="2" seed="23" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="9"/></filter></defs><g id="spArt" filter="url(#spWob1)" stroke="#1d1712" stroke-linecap="round" stroke-linejoin="round"><path class="spFloor" d="M-40 246H360" fill="none" stroke="#1d1712" stroke-width="4"/><g transform="translate(192 246) scale(.95) translate(-150 -286)"><g class="spBig" fill="#b3121b" stroke-width="6"><path d="M128 232V274M128 274L110 284M128 274L128 288M128 274L144 284M176 232V274M176 274L158 284M176 274L176 288M176 274L192 284" fill="none"/><path d="M214 120Q250 126 268 104Q250 88 256 64Q262 40 286 46Q306 54 300 82Q312 120 282 146Q250 168 212 150Z"/><path d="M266 100Q276 92 288 98" fill="none"/><g transform="translate(300 0) scale(-1 1)"><path d="M214 120Q250 126 268 104Q250 88 256 64Q262 40 286 46Q306 54 300 82Q312 120 282 146Q250 168 212 150Z"/><path d="M266 100Q276 92 288 98" fill="none"/></g><path d="M150 34Q184 34 190 66Q232 70 232 122Q232 200 196 228Q150 246 104 228Q68 200 68 122Q68 70 110 66Q116 34 150 34Z"/><path d="M100 150Q124 168 147 150M153 150Q176 168 200 150M150 170V214M134 184H166M136 202H164" fill="none"/><circle cx="134" cy="70" r="4.5" fill="#e3d7bd"/><circle cx="166" cy="70" r="4.5" fill="#e3d7bd"/><path d="M126 60L140 63M174 60L160 63" fill="none"/><path d="M141 74Q150 68 159 74Q150 86 141 74Z"/></g></g><path class="spTrail" d="M58 290L150 246L246 246L112 296Z" fill="#1d1712" stroke="none"/><g transform="translate(79 290) scale(.3) translate(-150 -286)"><g class="spSmall" fill="#1d1712" stroke-width="15"><path d="M128 232V274M128 274L110 284M128 274L128 288M128 274L144 284M176 232V274M176 274L158 284M176 274L176 288M176 274L192 284" fill="none"/><path d="M220 128Q252 116 254 86Q246 74 236 84Q238 102 212 110Z"/><g transform="translate(300 0) scale(-1 1)"><path d="M220 128Q252 116 254 86Q246 74 236 84Q238 102 212 110Z"/></g><path d="M150 34Q184 34 190 66Q232 70 232 122Q232 200 196 228Q150 246 104 228Q68 200 68 122Q68 70 110 66Q116 34 150 34Z"/><circle cx="134" cy="70" r="4.5" fill="#e3d7bd"/><circle cx="166" cy="70" r="4.5" fill="#e3d7bd"/><path d="M126 60L140 63M174 60L160 63" fill="none"/><path d="M141 74Q150 68 159 74Q150 86 141 74Z"/></g></g></g></svg><div class="spName">Musclor<br>Duck</div><div class="spTag">games</div></div>
 <script>
 /* load watchdog: if the game script fails (blocked CDN, old WebView), say why on the title screen instead of failing silently */
 (function () {
@@ -236,7 +236,15 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   }, true);
   addEventListener('unhandledrejection', function (e) { errs.push(String(e.reason && e.reason.message || e.reason)); show('Erreur : ' + errs.join(' | ')); });
   setTimeout(function () { if (!window.__rh) show('Le jeu n’a pas pu se charger. Vérifie la connexion internet. ' + errs.join(' | ')); }, 9000);
-  document.getElementById('splash').addEventListener('click', function () { this.classList.add('skip'); });
+  /* opening screen: the cut line boils like hand-drawn frames, it clears itself, a tap skips it */
+  var root = document.documentElement, sp = document.getElementById('splash');
+  if (root.classList.contains('splash')) {
+    var art = document.getElementById('spArt'), k = 0;
+    var boil = setInterval(function () { k = (k + 1) % 3; art.setAttribute('filter', 'url(#spWob' + (k + 1) + ')'); }, 170);
+    var end = function () { clearInterval(boil); root.classList.remove('splash'); };
+    var timer = setTimeout(end, 2850);
+    sp.addEventListener('pointerdown', function () { clearTimeout(timer); end(); }, { once: true });
+  }
 })();
 </script>
 <script type="module">
