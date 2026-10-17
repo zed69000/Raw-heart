@@ -78,6 +78,12 @@ kbd{font-family:var(--mono);color:var(--ash);border:1px solid var(--smoke);paddi
 .page #cardBody{display:flex;flex-direction:column;gap:.7rem;min-height:9rem}
 #card{background:rgba(4,5,5,.92);justify-content:flex-start;cursor:pointer}
 #pause{z-index:10}
+#life{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:calc(16px + env(safe-area-inset-left,0px));width:26px;height:24px;opacity:0;transition:opacity .8s;pointer-events:none;z-index:3}
+#life svg{width:100%;height:100%;overflow:visible}#life path{fill:#a3170f;stroke:#e6dcc8;stroke-width:1.4;transition:fill .3s}
+#life.hit path{fill:#f4efe4}
+#map{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;background:rgba(4,4,4,.82);z-index:7}
+#mapc{max-width:92vw;max-height:80vh;height:auto;width:auto;box-shadow:0 0 0 1px #1d1712}
+#mapnote{margin:0;font-size:.72rem;letter-spacing:.08em;color:var(--ash);text-align:center;max-width:60ch}
 html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
 canvas{touch-action:none}
 .lb{position:fixed;left:0;right:0;height:0;background:#000;pointer-events:none}
@@ -134,6 +140,8 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
 </style>
 
 <canvas id="c"></canvas>
+<div id="life" aria-hidden="true"><svg viewBox="0 0 32 30"><path d="M16 28C6 20 1 14 1 8.5 1 4 4.5 1 8.5 1 12 1 14.5 3.5 16 6 17.5 3.5 20 1 23.5 1 27.5 1 31 4 31 8.5 31 14 26 20 16 28Z"/></svg></div>
+<div id="map" hidden><canvas id="mapc" width="520" height="640"></canvas><p id="mapnote"></p></div>
 <div class="lb" id="lbT"></div><div class="lb" id="lbB"></div>
 <div id="subs"></div>
 <div id="prompt"></div>
@@ -170,7 +178,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v18 · 17.10.2026</p>
+  <p class="ver" id="ver">v19 · 17.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -212,11 +220,21 @@ function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; le
 const rnd = mulberry32(20250201);
 const rr = (a, b) => a + (b - a) * rnd();
 const mr = (a, b) => a + (b - a) * Math.random();
+/* tunables: look, stamina, noise, monsters */
+const CFG = {
+  lookSens: 0.0022, lookAccel: 1.6, touchLook: 3.0,
+  walkSpeed: 3.2, runSpeed: 5.8, staminaRun: 5, staminaRegenWalk: 9, staminaRegenRest: 4.5, staminaRecover: 0.4,
+  noiseRun: 16, noiseWalk: 7, noiseHidden: 3, mouthMax: 2.2, sightStep: 1.5,
+};
+/* one seed per run drives the weather curve and the layout variations; ?seed=N replays a run */
+const RUN_SEED = (() => { const q = new URLSearchParams(location.search).get('seed'); return q ? (parseInt(q, 10) >>> 0) : ((Math.random() * 4294967296) >>> 0); })();
+console.info('[Raw Heart] seed ' + RUN_SEED + ' (replay: ?seed=' + RUN_SEED + ')');
+const vrnd = mulberry32(RUN_SEED), vr = (a, b) => a + (b - a) * vrnd();
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
 /* ---------- languages ---------- */
 /* Texts come from the "Raw Heart — Textes du jeu" doc (one tab per language), keyed by the doc's IDs. */
-const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lum...","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Cacher","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur"},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the li...","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Hide","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart"}};
+const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lum...","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Cacher","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the li...","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Hide","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
 const LANGS = [['fr', 'Français'], ['en', 'English']];
 const VLANG = { fr: 'fr-FR', en: 'en-US', de: 'de-DE', es: 'es-ES', it: 'it-IT', pt: 'pt-BR', pl: 'pl-PL', ru: 'ru-RU', ja: 'ja-JP', ko: 'ko-KR', zh: 'zh-CN', tr: 'tr-TR' };
 let LANG = (() => {
@@ -237,7 +255,7 @@ const scene = new THREE.Scene();
 const fog = new THREE.FogExp2(0x060707, 0.05);
 scene.fog = fog;
 scene.background = new THREE.Color(0x060707);
-const camera = new THREE.PerspectiveCamera(70, 1, 0.03, 260);
+const camera = new THREE.PerspectiveCamera(70, 1, 0.08, 260);
 camera.rotation.order = 'YXZ';
 scene.add(camera);
 
@@ -247,7 +265,7 @@ rt.depthTexture.type = THREE.UnsignedIntType;
 /* Ink illustration pass: wobbling contour lines from depth and luminance, hatching in the shadows, aged sepia paper. */
 const postMat = new THREE.ShaderMaterial({
   uniforms: {
-    tDiffuse: { value: rt.texture }, tDepth: { value: rt.depthTexture }, uNear: { value: 0.03 }, uFar: { value: 260 }, uFogD: { value: 0.05 },
+    tDiffuse: { value: rt.texture }, tDepth: { value: rt.depthTexture }, uNear: { value: 0.08 }, uFar: { value: 260 }, uFogD: { value: 0.05 },
     uTime: { value: 0 }, uTunnel: { value: 0 }, uRed: { value: 0 },
     uGrain: { value: 0.085 }, uAberr: { value: 0 }, uFade: { value: 1 }, uFlash: { value: 0 },
     uFlashColor: { value: new THREE.Color(1, 1, 1) }, uRes: { value: new THREE.Vector2(1, 1) },
@@ -560,7 +578,7 @@ function g(v, dest) { const n = AC.createGain(); n.gain.value = v; if (dest) n.c
 function setG(node, v, tc = 0.15) { node.gain.setTargetAtTime(v, AC.currentTime, tc); }
 function biq(type, f, q = 1) { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
 function loopNoise(buf) { const s = AC.createBufferSource(); s.buffer = buf; s.loop = true; s.start(0, Math.random() * buf.duration * 0.9); return s; }
-function panner(ref = 3) { return new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: ref, maxDistance: 300, rolloffFactor: 1.1 }); }
+function panner(ref = 3) { return new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: ref, maxDistance: 160, rolloffFactor: 1.6 }); }
 function placePanner(pn, x, y, z) { if (pn.positionX) { pn.positionX.value = x; pn.positionY.value = y; pn.positionZ.value = z; } else pn.setPosition(x, y, z); }
 
 /* Breathy whispers: pink-ish noise through two moving formants, kept below 2 kHz so they murmur rather than hiss. */
@@ -658,6 +676,10 @@ function initAudio() {
   S.chimePan = panner(5); S.chimePan.connect(S.world); S.chimePan.connect(g(0.6, S.rev));
   S.gPan = panner(2); S.gPan.connect(S.world); S.gPan.connect(g(0.3, S.rev));
   S.humPan = panner(6); S.humPan.connect(S.world); S.humPan.connect(g(0.9, S.rev));
+  /* breath: rises as stamina runs out, distinct from the heartbeat that carries health */
+  S.breath = g(0, S.master); S.breathM = g(0.9);
+  loopNoise(S.brown).connect(biq('bandpass', 950, 0.9)).connect(S.breathM).connect(S.breath);
+  S.breathLfo = AC.createOscillator(); S.breathLfo.frequency.value = 0.6; S.breathLfo.connect(g(0.85)).connect(S.breathM.gain); S.breathLfo.start();
   S.mv = [0, 1, 2, 3, 4, 5].map(() => {
     const pn = new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: 2.5, maxDistance: 60, rolloffFactor: 1.35 });
     pn.connect(S.world); pn.connect(g(0.22, S.rev));
@@ -694,6 +716,21 @@ function cry(t, pan) {
 }
 function shatter(t) { burst(t, { dur: 0.5, amp: 0.12, type: 'bandpass', freq: 2200, Q: 0.8 }); }
 function clack(t, amp = 0.35) { burst(t, { dur: 0.06, amp, type: 'lowpass', freq: 900, Q: 1.5 }); burst(t + 0.13, { dur: 0.05, amp: amp * 0.7, type: 'lowpass', freq: 800, Q: 1.5 }); }
+/* the ground under the feet: planks on platforms, huts and the handcar, ballast on the track, earth elsewhere */
+function surfaceAt(x, z) {
+  if (typeof inHut === 'function' && inHut(x, z, 0)) return 'wood';
+  for (const q of quays) if (x > QX - 1.8 && x < QX + 1.8 && Math.abs(z - q.gp.position.z) < 8) return 'wood';
+  if (W.inBooth) return 'stone';
+  if (Math.abs(x) < 1.7) return 'stone';
+  return 'dirt';
+}
+function footstep(t, amp, surf, run) {
+  if (surf === 'wood') { thump(t, amp * 1.5, run ? 125 : 105, S.world, 0.08); burst(t + 0.004, { dur: 0.05, amp: amp * 0.35, freq: 950, Q: 2.5 }); }
+  else if (surf === 'stone') {
+    for (let i = 0; i < 3; i++) burst(t + i * mr(0.012, 0.03), { dur: mr(0.02, 0.05), amp: amp * mr(0.3, 0.55), type: 'highpass', freq: mr(1800, 3200), Q: 0.8 });
+    burst(t, { dur: 0.07, amp: amp * 0.6, type: 'lowpass', freq: 700 });
+  } else step(t, amp * (run ? 1.15 : 1));
+}
 function step(t, amp) { burst(t, { dur: 0.09, amp, type: 'lowpass', freq: 550, Q: 0.7 }); burst(t + 0.01, { dur: 0.03, amp: amp * 0.08, type: 'bandpass', freq: 2200 }); }
 function crunch(t, amp) { for (let i = 0; i < 3; i++) burst(t + i * mr(0.03, 0.07), { dur: mr(0.05, 0.12), amp: amp * mr(0.4, 0.8), freq: mr(250, 900), Q: 3 }); thump(t, amp * 0.6, 90, S.world, 0.2); }
 function scream(t) {
@@ -1001,7 +1038,7 @@ M.rail.color.set(0x55524d);
 const smokeTime = { value: 0 };
 function smokeMat(col, op = 1) {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: smokeTime, uCol: { value: new THREE.Color(col) }, uOp: { value: op } },
+    uniforms: { uTime: smokeTime, uCol: { value: new THREE.Color(col) }, uOp: { value: op }, uLine: { value: 0 } },
     vertexShader: `uniform float uTime; varying vec3 vN; varying vec3 vV; varying vec3 vW;
       void main(){
         vec3 p = position + normal * 0.025 * sin(uTime * 3.0 + position.y * 9.0 + position.x * 7.0);
@@ -1009,7 +1046,7 @@ function smokeMat(col, op = 1) {
         vec4 mv = viewMatrix * w; vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz);
         gl_Position = projectionMatrix * mv;
       }`,
-    fragmentShader: `uniform float uTime, uOp; uniform vec3 uCol; varying vec3 vN; varying vec3 vV; varying vec3 vW;
+    fragmentShader: `uniform float uTime, uOp, uLine; uniform vec3 uCol; varying vec3 vN; varying vec3 vV; varying vec3 vW;
       float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
       float n3(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
         return mix(mix(mix(h(i), h(i + vec3(1,0,0)), f.x), mix(h(i + vec3(0,1,0)), h(i + vec3(1,1,0)), f.x), f.y),
@@ -1019,6 +1056,9 @@ function smokeMat(col, op = 1) {
         float smoke = n3(vW * 2.2 + vec3(0.0, -uTime * 0.7, uTime * 0.2)) * 0.6 + n3(vW * 5.0 - uTime * 0.4) * 0.4;
         float a = (0.18 + 0.6 * pow(fr, 1.8)) * (0.45 + 0.75 * smoke) * uOp;
         vec3 c = mix(uCol, uCol * 2.2 + 0.06, pow(fr, 2.5));
+        c += vec3(0.34, 0.31, 0.27) * pow(fr, 3.0) * (1.0 - uLine);
+        float la = smoothstep(0.6, 0.88, fr) * (0.5 + 0.5 * smoke) * min(uOp, 1.0) * 0.85;
+        a = mix(a, la, uLine); c = mix(c, vec3(0.74, 0.7, 0.62), uLine);
         gl_FragColor = vec4(c, clamp(a, 0.0, 1.0));
       }`,
     transparent: true, depthWrite: true
@@ -1053,8 +1093,12 @@ const FRAGS = [
   { x: 28, z: -198, kind: 'watch', line: loc('memory2') },
   { x: -18, z: -236, kind: 'toy', line: loc('memory3') },
 ];
-const BOOTHS = [[-13, -150], [16, -184], [3, -219], [-31, -206], [-6, -255]];
-const FIGURES = [[-15, -36], [17, -62], [-17, -88], [12, -103]];
+const BOOTHS = (() => {
+  const cand = [[16, -184], [3, -219], [-31, -206], [-6, -255], [24, -160], [-26, -180], [12, -250], [-36, -232]];
+  for (let i = cand.length - 1; i > 0; i--) { const k = Math.floor(vrnd() * (i + 1)); [cand[i], cand[k]] = [cand[k], cand[i]]; }
+  return [[-13, -150], ...cand.slice(0, 4)];
+})();
+const FIGURES = [[-15, -36], [17, -62], [-17, -88], [12, -103]].map(([x, z]) => [x + vr(-2.5, 2.5), z + vr(-3, 3)]);
 
 function groundH(x, z) {
   const k = smooth(3.2, 10, Math.abs(x));
@@ -1080,7 +1124,7 @@ const RAIL_LEN = 370, RAIL_CZ = -140;
   const sl = new THREE.InstancedMesh(new THREE.BoxGeometry(2.3, 0.1, 0.24), M.wood, n);
   const m = new THREE.Matrix4();
   for (let i = 0; i < n; i++) { m.makeRotationY(rr(-0.03, 0.03)); m.setPosition(0, 0.07, RAIL_CZ + RAIL_LEN / 2 - i * 0.75); sl.setMatrixAt(i, m); }
-  scene.add(sl);
+  sl.computeBoundingSphere(); scene.add(sl);
 }
 
 const trees = [];
@@ -1191,6 +1235,7 @@ function segDist(px, pz, ax, az, bx, bz) {
 const HUTS = [[-12, -182, Math.PI / 2, 4.4, 5], [18, -226, -Math.PI / 2, 4.4, 5], [-18, -236, 0.88, 4.8, 5.8]];
 function blocked(x, z) {
   for (const [hx, hz] of HUTS) if (Math.hypot(x - hx, z - hz) < 5.5) return true;
+  if (Math.hypot(x - 16, z - (LAMP1_Z - 10)) < 3.5) return true;
   if (Math.abs(x) < 3.4) return true;
   if (x > -1 && x < 8 && ((z < LAMP1_Z + 12 && z > LAMP1_Z - 55) || Math.abs(z - LAMP2_Z) < 12)) return true;
   for (let i = 0; i < pathPts.length - 1; i++) if (segDist(x, z, ...pathPts[i], ...pathPts[i + 1]) < 1.9) return true;
@@ -1227,7 +1272,7 @@ function blocked(x, z) {
       }
     }
   }
-  const inst = (geo, mat, arr) => { const im = new THREE.InstancedMesh(geo, mat, arr.length); arr.forEach((mm, i) => im.setMatrixAt(i, mm)); scene.add(im); return im; };
+  const inst = (geo, mat, arr) => { const im = new THREE.InstancedMesh(geo, mat, arr.length); arr.forEach((mm, i) => im.setMatrixAt(i, mm)); im.computeBoundingSphere(); scene.add(im); return im; };
   inst(new THREE.CylinderGeometry(0.15, 0.27, 1, 6, 1).translate(0, 0.5, 0), M.trunk, trunkM);
   const tiers = [[1.0, 0.46, 0.0], [0.8, 0.42, 0.27], [0.58, 0.4, 0.52], [0.36, 0.34, 0.74]].map(([r, h, y], ti) => {
     const cg = new THREE.ConeGeometry(r, h, 11, 1, true).translate(0, y + h / 2, 0).toNonIndexed();
@@ -1261,7 +1306,7 @@ function blocked(x, z) {
   const R3 = mulberry32(777);
   const r3 = (a, b) => a + (b - a) * R3();
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), sc = new THREE.Vector3(), ps = new THREE.Vector3();
-  const inst = (geo, mat, arr) => { if (!arr.length) return; const im = new THREE.InstancedMesh(geo, mat, arr.length); arr.forEach((mm, i) => im.setMatrixAt(i, mm)); scene.add(im); };
+  const inst = (geo, mat, arr) => { if (!arr.length) return; const im = new THREE.InstancedMesh(geo, mat, arr.length); arr.forEach((mm, i) => im.setMatrixAt(i, mm)); im.computeBoundingSphere(); scene.add(im); };
   const clearOfTrees = (x, z, d) => { let ok = true; forNear(x, z, t => { if (ok && Math.hypot(t.x - x, t.z - z) < t.r + d) ok = false; }); return ok; };
   function rockGeo(seed) {
     const gg = new THREE.IcosahedronGeometry(1, 1);
@@ -1376,7 +1421,7 @@ scene.add(pocketLight);
 const pockets = POCKETS.map(([x, z]) => {
   const gp = new THREE.Group(); gp.position.set(x, groundH(x, z), z);
   const shaft = new THREE.Mesh(new THREE.ConeGeometry(3.2, 18, 28, 1, true), shaftMat(0xdbe2e4, 0, 0)); shaft.position.y = 9; gp.add(shaft);
-  const disc = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xdfe5e6 }));
+  const disc = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xdfe5e6, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 }));
   disc.rotation.x = -Math.PI / 2; disc.position.y = 0.06; gp.add(disc);
   const halo = glowSprite(9, 0xc9d0d2, 0); halo.position.y = 4; gp.add(halo);
   scene.add(gp);
@@ -1471,7 +1516,7 @@ function siteLantern(parent, x, y, z, color = 0xf0e2c2) {
   return glow;
 }
 function refugeDisc(x, z, r) {
-  const d = new THREE.Mesh(new THREE.PlaneGeometry(r * 2.2, r * 2.2), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xe8dcc0 }));
+  const d = new THREE.Mesh(new THREE.PlaneGeometry(r * 2.2, r * 2.2), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xe8dcc0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 }));
   d.rotation.x = -Math.PI / 2; d.position.set(x, groundH(x, z) + 0.05, z); scene.add(d);
   return d;
 }
@@ -1568,7 +1613,7 @@ const RELAY = [0, 1].map(() => {
   const glow = glowSprite(4.5, 0xefe2c4, 0); glow.position.copy(bulb.position); gp.add(glow);
   const halo = glowSprite(22, 0xc9c2b2, 0); halo.position.copy(bulb.position); gp.add(halo);
   const shaft = new THREE.Mesh(new THREE.ConeGeometry(3.0, 4.0, 28, 1, true), shaftMat(0xe6dcc6, 0, 1)); shaft.position.set(0.95, 2.0, 0); gp.add(shaft);
-  const disc = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xe8dcc0 }));
+  const disc = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), new THREE.MeshBasicMaterial({ map: discTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, color: 0xe8dcc0, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8 }));
   disc.rotation.x = -Math.PI / 2; disc.position.set(0.95, 0.06, 0); gp.add(disc);
   const light = new THREE.PointLight(0xf3e3c4, 0, 14, 1.3); light.position.set(0.95, 3.8, 0); gp.add(light);
   return { gp, bulb, glow, halo, shaft, disc, light, x: 0, z: 0, on: false, k: 0, flk: 1, reached: false, ref: null };
@@ -1772,6 +1817,141 @@ function inner(id, chance = 1) {
   say(loc(id), 2.8, 'mono');
 }
 
+/* ---------- station: line map, switch lever and handcar ---------- */
+/* A board on the platform shows the real layout. A short detour to the signal box frees the handcar,
+   which then rides the rails to the point nearest the next beacon: an optional shortcut, nothing more. */
+const STATION = { board: { x: 4.9, z: LAMP1_Z + 4.5 }, lever: { x: 16, z: LAMP1_Z - 10 }, cart: { z: LAMP1_Z - 3 }, unlocked: false, pull: 0, mapOpen: false, riding: false };
+const rimMat = new THREE.LineBasicMaterial({ color: 0xe2d8c2, transparent: true, opacity: 0.5, fog: false });
+function rimLines(obj, thresh = 35) {
+  const ms = []; obj.traverse(m => { if (m.isMesh && !m.isInstancedMesh && !m.isSprite) ms.push(m); });
+  for (const m of ms) m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, thresh), rimMat));
+}
+const mapBoard = (() => {
+  const gp = new THREE.Group(); gp.position.set(STATION.board.x, 0.5, STATION.board.z); gp.rotation.y = -Math.PI / 2; scene.add(gp);
+  for (const s of [-0.55, 0.55]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.6, 0.08), M.wood); p.position.set(s, 0.8, 0); gp.add(p); }
+  const panel = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.85, 0.05), M.wood); panel.position.y = 1.35; gp.add(panel);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.72), new THREE.MeshBasicMaterial({ color: 0xcfc4ad })); face.position.set(0, 1.35, 0.03); gp.add(face);
+  rimLines(gp);
+  return gp;
+})();
+const lever = (() => {
+  const gp = new THREE.Group(); gp.position.set(STATION.lever.x, groundH(STATION.lever.x, STATION.lever.z), STATION.lever.z); gp.rotation.y = -0.6; scene.add(gp);
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.2, 1.5), M.wood); box.position.y = 1.1; gp.add(box);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(1.25, 0.6, 4), M.metal); roof.position.y = 2.5; roof.rotation.y = Math.PI / 4; gp.add(roof);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.25, 0.4), M.metal); base.position.set(0, 0.12, 1.1); gp.add(base);
+  const arm = new THREE.Group(); arm.position.set(0, 0.25, 1.1); arm.rotation.x = -0.6; gp.add(arm);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 1.1, 6).translate(0, 0.55, 0), M.metal); arm.add(rod);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.08, 0.08), new THREE.MeshBasicMaterial({ color: 0xb01c14 })); grip.position.y = 1.1; arm.add(grip);
+  rimLines(gp);
+  addCollider(STATION.lever.x, STATION.lever.z, 1.05);
+  return { gp, arm };
+})();
+const handcar = (() => {
+  const gp = new THREE.Group(); gp.position.set(0, 0.2, STATION.cart.z); scene.add(gp);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.12, 1.3), M.wood); deck.position.y = 0.25; gp.add(deck);
+  for (const [x, z] of [[-0.72, -0.45], [0.72, -0.45], [-0.72, 0.45], [0.72, 0.45]]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.06, 12), M.metal); w.rotation.z = Math.PI / 2; w.position.set(x, 0.1, z); gp.add(w); }
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.8, 0.1), M.metal); post.position.y = 0.7; gp.add(post);
+  const bar = new THREE.Group(); bar.position.y = 1.1; gp.add(bar);
+  bar.add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 1.2), M.metal));
+  const chain = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.025, 5, 10), new THREE.MeshBasicMaterial({ color: 0xb01c14 })); chain.position.set(0.86, 0.22, 0); chain.rotation.y = Math.PI / 2; gp.add(chain);
+  rimLines(gp);
+  return { gp, bar, chain };
+})();
+
+function drawMap() {
+  const c = $('mapc'), x = c.getContext('2d'), Wd = c.width, Ht = c.height;
+  const X = wx => 40 + (wx + 48) / 96 * (Wd - 80), Y = wz => 60 + (-116 - wz) / 166 * (Ht - 100);
+  const jit = () => (Math.random() - 0.5) * 1.2;
+  x.fillStyle = '#d9cdb2'; x.fillRect(0, 0, Wd, Ht);
+  x.strokeStyle = '#2a221a'; x.fillStyle = '#2a221a'; x.lineCap = 'round'; x.lineJoin = 'round';
+  x.font = '600 18px Georgia, serif'; x.textAlign = 'center'; x.fillText(loc('map.title'), Wd / 2, 32);
+  x.globalAlpha = 0.18;
+  for (let i = 0; i < 260; i++) { const tx = 30 + Math.random() * (Wd - 60), tz = 50 + Math.random() * (Ht - 80); x.beginPath(); x.moveTo(tx, tz); x.lineTo(tx + 3, tz - 7); x.lineTo(tx + 6, tz); x.stroke(); }
+  x.globalAlpha = 1;
+  x.lineWidth = 2.2;
+  for (const off of [-3, 3]) { x.beginPath(); x.moveTo(X(0) + off, Y(-116)); x.lineTo(X(0) + off + jit(), Y(-282)); x.stroke(); }
+  x.lineWidth = 1; for (let z = -118; z > -282; z -= 4) { x.beginPath(); x.moveTo(X(0) - 6, Y(z)); x.lineTo(X(0) + 6, Y(z)); x.stroke(); }
+  x.font = '13px Georgia, serif'; x.textAlign = 'left';
+  for (const q of [LAMP1_Z, LAMP2_Z]) { x.fillStyle = '#5b4a36'; x.fillRect(X(QX) - 6, Y(q + 8), 12, Y(q - 8) - Y(q + 8)); x.fillStyle = '#2a221a'; x.fillText(loc('map.station'), X(QX) + 10, Y(q) + 4); }
+  x.setLineDash(STATION.unlocked ? [] : [5, 5]); x.lineWidth = STATION.unlocked ? 3 : 1.5; x.strokeStyle = '#8a1a12';
+  x.beginPath(); x.moveTo(X(0) - 12, Y(STATION.cart.z)); x.lineTo(X(0) - 12, Y(-262)); x.stroke(); x.setLineDash([]); x.strokeStyle = '#2a221a';
+  x.fillStyle = '#8a1a12'; x.fillText(loc('map.cart'), X(0) - 92, Y(handcar.gp.position.z) + 4); x.fillRect(X(0) - 18, Y(handcar.gp.position.z) - 4, 12, 8);
+  x.beginPath(); x.arc(X(STATION.lever.x), Y(STATION.lever.z), 6, 0, 7); x.fill();
+  x.fillText(loc('map.lever') + (STATION.unlocked ? ' ✓' : ''), X(STATION.lever.x) + 10, Y(STATION.lever.z) + 4); x.fillStyle = '#2a221a';
+  for (const b of booths) { x.lineWidth = 1.5; x.strokeRect(X(b.x) - 5, Y(b.z) - 5, 10, 10); if (b.lit) x.fillRect(X(b.x) - 3, Y(b.z) - 3, 6, 6); }
+  for (const h of huts) { x.save(); x.translate(X(h.x), Y(h.z)); x.rotate(h.rot); x.strokeRect(-h.w * 2.4, -h.d * 2.4, h.w * 4.8, h.d * 4.8); x.restore(); if (!frags.some(f => Math.hypot(f.x - h.x, f.z - h.z) < 4)) x.fillText(loc('map.hut'), X(h.x) + 14, Y(h.z) + 4); }
+  frags.forEach((f, i) => {
+    x.lineWidth = 2; x.beginPath(); x.arc(X(f.x), Y(f.z), 10, 0, 7); x.stroke();
+    x.textAlign = 'center'; x.fillText(String(i + 1), X(f.x), Y(f.z) + 5); x.textAlign = 'left';
+    if (f.taken) { x.beginPath(); x.moveTo(X(f.x) - 9, Y(f.z) - 9); x.lineTo(X(f.x) + 9, Y(f.z) + 9); x.stroke(); }
+    x.fillText(loc('site' + (i + 1) + '.name'), X(f.x) + 14, Y(f.z) - 10);
+  });
+  const px = X(player.x), pz = Y(player.z);
+  x.fillStyle = '#8a1a12'; x.strokeStyle = '#8a1a12'; x.lineWidth = 2;
+  x.beginPath(); x.arc(px, pz, 5, 0, 7); x.fill();
+  x.beginPath(); x.moveTo(px, pz); x.lineTo(px - Math.sin(player.yaw) * 16, pz + Math.cos(player.yaw) * 16); x.stroke();
+  x.fillText(loc('map.you'), px + 9, pz - 8);
+  $('mapnote').innerHTML = T(loc(STATION.unlocked ? 'map.note2' : 'map.note1') + ' · ' + loc('map.close'));
+}
+function openMap(on) {
+  STATION.mapOpen = on; $('map').hidden = !on;
+  player.canMove = !on;
+  if (on) { drawMap(); if (AC) burst(AC.currentTime, { dur: 0.25, amp: 0.15, freq: 2600, Q: 0.6 }); }
+}
+async function rideCart() {
+  const tg = currentTarget();
+  const dest = clamp(tg.z + 4, -262, -124);
+  if (Math.abs(dest - handcar.gp.position.z) < 14) { say(loc('cart.far'), 2.6, 'mono'); return; }
+  busy = true; STATION.riding = true; player.canMove = false; letterbox(true, 0.8);
+  player.x = 0.15; player.z = handcar.gp.position.z; player.eye = 1.95;
+  if (AC) setG(S.rumble, 0.25, 0.5);
+  const z0 = handcar.gp.position.z, dur = Math.abs(dest - z0) / 6;
+  player.yaw = dest < z0 ? 0 : Math.PI;
+  const r = { k: 0 }; let lastClack = 0;
+  tween(r, 'k', 1, dur, easeIO);
+  while (r.k < 1) {
+    await wait(0);
+    const z = lerp(z0, dest, r.k);
+    handcar.gp.position.z = z; player.z = z; player.x = 0.15;
+    handcar.bar.rotation.x = Math.sin(gt * 5) * 0.45;
+    if (AC && Math.abs(z - lastClack) > 3) { lastClack = z; clack(AC.currentTime, 0.18); }
+  }
+  if (AC) setG(S.rumble, 0, 0.6);
+  player.x = 2.2; player.eye = 1.62; letterbox(false, 0.8);
+  STATION.riding = false; player.canMove = true; busy = false;
+}
+/* returns the prompt to show, and acts on the interaction key */
+function stationInteract(dt) {
+  if (STATION.mapOpen) { if (consume('KeyE', 'Space', 'Escape')) openMap(false); return 'open'; }
+  if (busy) return '';
+  if (Math.hypot(player.x - STATION.board.x, player.z - STATION.board.z) < 2.3) {
+    if (consume('KeyE', 'Space')) openMap(true);
+    return loc('map.prompt');
+  }
+  const lx = STATION.lever.x + Math.sin(-0.6) * 1.1, lz = STATION.lever.z + Math.cos(-0.6) * 1.1;
+  if (!STATION.unlocked && Math.hypot(player.x - lx, player.z - lz) < 2.2) {
+    if (down('KeyE') || down('Space')) {
+      STATION.pull += dt; lever.arm.rotation.x = lerp(-0.6, 0.7, clamp(STATION.pull / 1.2, 0, 1));
+      if (STATION.pull > 1.2) {
+        STATION.unlocked = true; handcar.chain.visible = false;
+        if (AC) { clack(AC.currentTime, 0.6); thump(AC.currentTime, 0.7, 70, S.world, 0.3); breaker(STATION.lever.x, STATION.lever.z); }
+        say(loc('lever.done'), 3, 'mono');
+      }
+    } else { STATION.pull = 0; lever.arm.rotation.x = damp(lever.arm.rotation.x, -0.6, 6, dt); }
+    return loc('lever.prompt');
+  }
+  if (Math.abs(player.x) < 2.2 && Math.abs(player.z - handcar.gp.position.z) < 2) {
+    if (!STATION.unlocked) return loc('cart.locked');
+    if (consume('KeyE', 'Space')) rideCart();
+    return loc('cart.prompt');
+  }
+  return '';
+}
+
+/* wagon and rails get a pale drawn edge so the way out reads at a glance */
+rimLines(wagon, 30);
+scene.traverse(o => { if (o.isMesh && o.material === M.rail) o.add(new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), rimMat)); });
+
 /* the little girl */
 const girl = (() => {
   const gp = new THREE.Group();
@@ -1809,13 +1989,15 @@ const teethMat = new THREE.MeshBasicMaterial({ color: 0xe6dcc8, side: THREE.Doub
 const teethGeo = new THREE.PlaneGeometry(0.9, 1).translate(0, -0.5, 0);
 function makeGhost(kind, mat = M.creature) {
   const gp = new THREE.Group(), body = new THREE.Group(); gp.add(body);
-  let eyeY, eyeZ, eyeX, eyeR, eyeOX = 0, mw, mh, my, mz;
+  let eyeY, eyeZ, eyeX, eyeR, eyeOX = 0, mw, mh, my, mz, legs = null;
   if (kind === 'tall') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.5, 0], [0.47, 0.6], [0.43, 1.6], [0.42, 2.3], [0.38, 2.6], [0.28, 2.85], [0.12, 2.98], [0, 3.0]]), 0.3, 0.25), mat));
     eyeY = 2.62; eyeZ = 0.37; eyeX = 0.12; eyeR = 0.045; mw = 0.3; mh = 0.4; my = 2.5; mz = 0.4;
   } else if (kind === 'blob') {
-    body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.62, 0], [0.62, 0.35], [0.56, 0.7], [0.42, 0.95], [0.22, 1.1], [0, 1.15]]), 0.2, 0.12), mat));
-    eyeY = 0.74; eyeZ = 0.5; eyeX = 0.16; eyeR = 0.05; mw = 0.3; mh = 0.26; my = 0.62; mz = 0.58;
+    body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.52, 0], [0.46, 0.5], [0.38, 1.2], [0.33, 1.65], [0.3, 1.95], [0.18, 2.22], [0.04, 2.36], [0, 2.38]]), 0.35, 0.3), mat));
+    const hood = new THREE.Mesh(new THREE.SphereGeometry(0.27, 14, 10), mat); hood.scale.set(1, 1.25, 1.05); hood.position.set(0, 2.0, 0.06); hood.rotation.x = 0.35; body.add(hood);
+    for (const sx of [-1, 1]) { const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.09, 1.55, 6).translate(0, -0.78, 0), mat); arm.position.set(sx * 0.3, 1.8, 0.08); arm.rotation.set(-0.12, 0, sx * 0.1); body.add(arm); }
+    eyeY = 2.02; eyeZ = 0.37; eyeX = 0.1; eyeR = 0.045; mw = 0.24; mh = 0.3; my = 1.9; mz = 0.36;
   } else if (kind === 'echo') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.34, 0], [0.31, 0.8], [0.27, 1.7], [0.24, 2.4], [0.2, 2.7], [0.08, 2.85], [0, 2.9]]), 0.3, 0.3), mat));
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), mat); head.scale.set(1, 1.25, 0.95); head.position.set(0.12, 2.95, 0.04); head.rotation.z = -0.5; body.add(head);
@@ -1827,8 +2009,14 @@ function makeGhost(kind, mat = M.creature) {
   } else {
     const s = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), mat); s.scale.set(1.0, 0.36, 0.8); s.position.y = 0.3; body.add(s);
     const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), mat); shell.scale.set(0.62, 0.3, 0.55); shell.position.set(0, 0.48, 0.05); body.add(shell);
-    for (const [x, z, ry] of [[-1, -0.2, 0.4], [-0.95, 0.35, -0.2], [1, -0.2, -0.4], [0.95, 0.35, 0.2], [-0.7, -0.6, 0.8], [0.7, -0.6, -0.8]]) {
-      const c = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 5), mat); c.position.set(x * 1.05, 0.32, z); c.rotation.set(0.2, ry, x > 0 ? -0.9 : 0.9); body.add(c);
+    s.scale.set(0.75, 0.32, 1.15);
+    legs = [];
+    for (const [x, z] of [[-1, 0.55], [1, 0.55], [-1, 0], [1, 0], [-1, -0.55], [1, -0.55]]) {
+      const hip = new THREE.Group(); hip.position.set(x * 0.55, 0.42, z); hip.rotation.y = x > 0 ? 0 : Math.PI; body.add(hip);
+      const up = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.06, 0.9, 5).translate(0, 0.45, 0), mat); up.rotation.z = -1.0; hip.add(up);
+      const knee = new THREE.Group(); knee.position.set(0.76, 0.5, 0); hip.add(knee);
+      const lo = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.035, 1.1, 5).translate(0, -0.55, 0), mat); lo.rotation.z = 0.35; knee.add(lo);
+      legs.push(hip);
     }
     eyeY = 0.56; eyeZ = 0.6; eyeX = 0.2; eyeR = 0.06; mw = 0.5; mh = 0.2; my = 0.46; mz = 0.7;
   }
@@ -1841,7 +2029,7 @@ function makeGhost(kind, mat = M.creature) {
   const teeth = new THREE.Mesh(teethGeo, teethMat); teeth.position.z = -0.006; mouth.add(teeth);
   mouth.add(new THREE.Mesh(mouthGeo, mouthMat));
   gp.visible = false; scene.add(gp);
-  return { gp, body, head: body, eyes, glows, kind, eyeY, mouth, mouthH: mh };
+  return { gp, body, head: body, eyes, glows, kind, eyeY, mouth, mouthH: mh, mouthW: mw, mat, legs, tw: 0, twz: 0 };
 }
 /* Eyes and mouth tell the state: half-closed slits while wandering, wide open with the mouth torn open once it has found you. */
 function setFace(h, eye, mouth) {
@@ -1851,6 +2039,7 @@ function setFace(h, eye, mouth) {
   h.eyes.forEach(e => e.scale.set((1 + 0.25 * eye) * fe, clamp(eye, 0.18, 1.4) * fe, fe));
   h.glows.forEach(gl => gl.scale.setScalar(gl.userData.s * (0.55 + 0.75 * eye) * far));
   h.mouth.scale.y = h.mouthH * Math.max(0.05, mouth);
+  h.mouth.scale.x = h.mouthW * Math.max(1, 0.55 + 0.45 * mouth);
 }
 /* hover, sway and breathe; a lunge tips the body forward and the hem drops to slide along the ground */
 function ghostPose(h, ph, moving, tilt, lunge = false) {
@@ -1859,7 +2048,9 @@ function ghostPose(h, ph, moving, tilt, lunge = false) {
   h.body.rotation.z = lunge ? 0 : Math.sin(t * 1.3 + ph) * 0.06 + tilt * 0.25;
   h.body.rotation.x = lunge ? 0.35 : (moving ? 0.12 : 0);
   const br = 1 + Math.sin(t * (lunge ? 7 : 3) + ph) * 0.04;
-  h.body.scale.set(br * (h.kind === 'crawler' ? 1 + Math.sin(t * 6 + ph) * 0.08 : 1), (1 / br) * (lunge && h.kind !== 'crawler' ? 0.92 : 1), br * (lunge ? 1.12 : 1));
+  h.body.scale.set(br, (1 / br) * (lunge && h.kind !== 'crawler' ? 0.92 : 1), br * (lunge ? 1.12 : 1));
+  if (lunge) { h.tw -= W._dt || 0.016; if (h.tw <= 0) { h.tw = mr(0.08, 0.22); h.twz = mr(-0.35, 0.35); } h.body.rotation.z += h.twz; }
+  if (h.legs) h.legs.forEach((g, i) => { g.rotation.z = Math.sin(t * (lunge ? 14 : 4) + ph + i * 2.1) * (lunge ? 0.35 : 0.12); });
 }
 
 /* the creature: a tall, hunched figure with dragging arms and a pale mask, posed in stop-motion steps */
@@ -1922,7 +2113,7 @@ const C = (() => {
     huntSpeed: 4.0, patrolSpeed: 1.7, freeze: false, phase: 0, aggressive: false, boothAngle: 0, introduced: false, introDone: false, op: 1,
     snapT: 0, tilt: 0, lastStep: 0, listenT: 0, jump: false };
 })();
-const G = makeGhost('tall');
+const G = makeGhost('tall', smokeMat(0x433d35, 1.25));
 const A = { kind: null, next: 0, t: 0, t2: 0, x: 0, z: 0, look: 0, shown: false, count: 0, humNext: 0 };
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpK = new THREE.Vector3();
@@ -2228,6 +2419,7 @@ const player = { x: 0, z: 0, y: 0, eye: 1.2, yaw: 0, pitch: 0, vx: 0, vz: 0, can
   moving: false, sprinting: false, bob: 0, stepAcc: 0, shake: 0, roll: 0, fov: 70, fovT: 70, seated: true };
 let bounds = { x0: -28, x1: 28, z0: -136, z1: 6 };
 function collide() {
+  if (typeof handcar !== 'undefined' && !STATION.riding) { const dz = player.z - handcar.gp.position.z, dx = player.x; if (Math.abs(dx) < 1.2 && Math.abs(dz) < 1.0) { if (Math.abs(dx) / 1.2 > Math.abs(dz) / 1.0) player.x = Math.sign(dx || 1) * 1.2; else player.z = handcar.gp.position.z + Math.sign(dz || 1) * 1.0; } }
   forNear(player.x, player.z, t => {
     const dx = player.x - t.x, dz = player.z - t.z, d = Math.hypot(dx, dz), m = t.r + 0.32;
     if (d < m && d > 1e-4) { player.x = t.x + dx / d * m; player.z = t.z + dz / d * m; }
@@ -2237,7 +2429,8 @@ function collide() {
 }
 function updatePlayer(dt) {
   if (player.canLook) {
-    const sens = 0.0022;
+    /* faster flicks turn further, so a half turn fits in one swipe; slow moves stay precise */
+    const sens = CFG.lookSens * (1 + CFG.lookAccel * smooth(3, 40, Math.hypot(look.dx, look.dy)));
     player.yaw -= look.dx * sens;
     player.pitch = clamp(player.pitch - look.dy * sens, -1.35, 1.35);
   }
@@ -2264,12 +2457,12 @@ function updatePlayer(dt) {
   const mag = Math.min(1, len);
   const shift = down('ShiftLeft') || down('ShiftRight') || (TI.active && mag > 0.95 && TI.my > 0.6);
   if (player.stamina < 0.05) player.tired = true;
-  if (player.tired && player.stamina > 0.4) player.tired = false;
+  if (player.tired && player.stamina > CFG.staminaRecover) player.tired = false;
   const sprint = shift && iz > 0 && len > 0 && !player.tired && !heart.hidden;
-  let sp = len > 0.08 ? (sprint ? 5.8 : 3.2) * (TI.active ? Math.max(0.35, mag) : 1) : 0;
+  let sp = len > 0.08 ? (sprint ? CFG.runSpeed : CFG.walkSpeed) * (TI.active ? Math.max(0.35, mag) : 1) : 0;
   if (heart.hidden) sp *= 0.72;
   player.sprinting = sprint;
-  player.stamina = clamp(player.stamina + (sprint ? -dt / 5 : dt / 7), 0, 1);
+  player.stamina = clamp(player.stamina + (sprint ? -dt / CFG.staminaRun : dt / (len > 0.08 ? CFG.staminaRegenWalk : CFG.staminaRegenRest)), 0, 1);
   const fxv = -Math.sin(player.yaw), fzv = -Math.cos(player.yaw), rxv = Math.cos(player.yaw), rzv = -Math.sin(player.yaw);
   const tvx = len ? (fxv * iz + rxv * ix) / len * sp : 0, tvz = len ? (fzv * iz + rzv * ix) / len * sp : 0;
   const acc = player.canMove ? 9 : 2.4;
@@ -2280,7 +2473,7 @@ function updatePlayer(dt) {
   if (player.moving && player.canMove) {
     player.bob += dt * speed * 2.1;
     player.stepAcc += speed * dt;
-    if (player.stepAcc > (sprint ? 0.95 : 0.75)) { player.stepAcc = 0; if (AC) step(AC.currentTime, sprint ? 0.32 : 0.2); }
+    if (player.stepAcc > (sprint ? 1.6 : 1.1)) { player.stepAcc = 0; if (AC) footstep(AC.currentTime, (sprint ? 0.34 : 0.18) * (heart.hidden ? 0.6 : 1), surfaceAt(player.x, player.z), sprint); }
   }
   if (player.tired && AC && Math.random() < dt * 1.2) gasp(AC.currentTime);
 }
@@ -2787,7 +2980,7 @@ function currentTarget() {
 }
 
 async function enterBooth(b) {
-  busy = true; player.canMove = false; W.inBooth = b;
+  busy = true; player.canMove = false; player.canLook = true; W.inBooth = b; player.vx = player.vz = 0;
   b.doorPivot.rotation.y = -1.1;
   tween(player, 'x', b.x, 0.6); tween(player, 'z', b.z, 0.6);
   await wait(0.6);
@@ -2913,7 +3106,7 @@ function updateCreature(dt) {
     const stalking = C.mode === 'stalk';
     let da = Math.atan2(dx, dz) - C.yaw; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
     const r = heart.hidden ? (stalking ? 3.5 : 6) : (stalking ? 10 : 26);
-    if (((d < r && (Math.abs(da) < 0.9 || d < 4)) || C.aggressive) && !W.inShelter) detect = true;
+    if (((d < r && (Math.abs(da) < 0.9 || d < 4) && (d < 4 || sees(C))) || C.aggressive) && !W.inShelter) detect = true;
   }
   if (C.mode === 'alert') {
     C.alertT -= dt;
@@ -2997,7 +3190,10 @@ function animateCreature(dt, speed) {
   setEyes(C.h, eyesOn ? (hunting || C.mode === 'alert' ? 1 : 0.6) : 0);
   C.fe = damp(C.fe ?? 0.3, hunting ? 1.35 : C.mode === 'alert' ? 0.85 : C.mode === 'search' ? 0.6 : 0.3, 8, dt);
   C.fm = damp(C.fm ?? 0, hunting ? 1 : C.mode === 'alert' ? 0.15 : 0, 6, dt);
-  setFace(C.h, C.fe, C.fm);
+  C.vis = damp(C.vis ?? 0, hunting || C.mode === 'alert' || C.jump ? 1 : 0, hunting ? 3 : 1.2, dt);
+  setFace(C.h, C.fe, C.fm * lerp(1, CFG.mouthMax, C.vis * (1 - smooth(1.5, 12, d))));
+  M.creature.uniforms.uLine.value = 1 - C.vis;
+  C.h.mouth.visible = C.vis > 0.25;
 }
 
 /* Apparitions: non-lethal scares between encounters, alternating a watcher at the edge of the light and steps behind the player. */
@@ -3214,6 +3410,7 @@ function hitFx(src) {
 }
 function hurt(a, src) {
   SW.fear += a;
+  const lf = $('life'); lf.classList.add('hit'); setTimeout(() => lf.classList.remove('hit'), 380); LIFE.kick = 1;
   hitFx(src);
   player.shake = Math.max(player.shake, 0.9); tween(player, 'shake', 0, 0.5);
   P.uFlashColor.value.setRGB(0.45, 0, 0); fx.flash = 0.35; tween(fx, 'flash', 0, 0.6);
@@ -3236,13 +3433,25 @@ async function overwhelmed() {
   relayAfterRespawn();
 }
 /* how loud the player is: running carries far, walking a little, standing still nothing; the visible heart beats audibly */
-function noiseR() { return player.sprinting ? 16 : player.moving ? (heart.hidden ? 3 : 7) : 0; }
+function noiseR() { return player.sprinting ? CFG.noiseRun : player.moving ? (heart.hidden ? CFG.noiseHidden : CFG.noiseWalk) : 0; }
 function heartR() { return heart.hidden || !W.heartOwned ? 0 : 5 + 5 * SW.fear; }
+/* sight is blocked by trunks, rocks and huts; hearing is not */
+function los(ax, az, bx, bz) {
+  const d = Math.hypot(bx - ax, bz - az), n = Math.floor(d / CFG.sightStep);
+  for (let i = 1; i < n; i++) {
+    const k = i / n, x = ax + (bx - ax) * k, z = az + (bz - az) * k;
+    let hit = false;
+    forNear(x, z, c => { if (!hit && c.r > 0.2 && Math.hypot(c.x - x, c.z - z) < c.r + 0.1) hit = true; });
+    if (hit || inHut(x, z, 0)) return false;
+  }
+  return true;
+}
+function sees(e) { e.losT = (e.losT || 0) - (W._dt || 0.016); if (e.losT <= 0) { e.losT = 0.2; e.losV = los(e.x, e.z, player.x, player.z); } return e.losV; }
 function perceives(e, d) {
   if (busy || W.inBooth || W.memory || (W.inShelter && d > 1.5)) return false;
-  if (e.kind === 'blob') return d < Math.max(noiseR(), heartR(), 3.5);
+  if (e.kind === 'blob') return d < noiseR() || ((d < heartR() || d < 3.5) && sees(e));
   if (e.kind === 'crawler') return player.moving && d < 9 + W.fragIndex;
-  return d < 7;
+  return d < 7 && sees(e);
 }
 function screech(e) {
   if (!AC) return;
@@ -3322,7 +3531,8 @@ function updateSwarm(dt) {
           if (gt > SW.echoSing && AC) { SW.echoSing = gt + 8; placePanner(S.humPan, e.x, 2.6, e.z); hum(AC.currentTime, S.humPan); }
         }
         e.eye = damp(e.eye, 0.3 + 0.1 * Math.sin(gt * 0.7 + e.phase), 3, dt); e.mouth = damp(e.mouth, 0, 4, dt);
-        if (sense) { e.st = 'alert'; e.t = 0; if (AC) { placePanner(S.gPan, e.x, 1, e.z); rasp(AC.currentTime, S.gPan); } if (e.kind === 'crawler') inner('warn.crawler'); }
+        e.sAcc = sense ? (e.sAcc || 0) + dt : 0;
+        if (e.sAcc > 0.25) { e.sAcc = 0; e.st = 'alert'; e.t = 0; if (AC) { placePanner(S.gPan, e.x, 1, e.z); rasp(AC.currentTime, S.gPan); } if (e.kind === 'crawler') inner('warn.crawler'); }
         else if (e.kind === 'blob' && d < 24 && e.op > 0.6) { const fwx = -Math.sin(player.yaw), fwz = -Math.cos(player.yaw); if ((fwx * -dx + fwz * -dz) / d > 0.9) inner('warn.eyes', 0.5); }
         if (e.kind === 'echo' && d < 20) inner('warn.echo', 0.6);
         if (d > 52) { e.active = false; gp.visible = false; continue; }
@@ -3381,10 +3591,13 @@ function updateSwarm(dt) {
     }
     gp.position.set(e.x, groundH(e.x, e.z), e.z); gp.rotation.y = e.yaw;
     ghostPose(e.h, e.phase, e.st !== 'wander' || e.kind !== 'echo', e.kind === 'echo' ? -0.9 : 0, e.st === 'chase' && !e.dying);
-    setFace(e.h, e.eye, e.mouth);
-    const base = e.kind === 'crawler' ? 1.3 : 1.25;
-    for (const m of e.h.body.children) if (m.material && m.material.uniforms) m.material.uniforms.uOp.value = base * e.op;
-    e.h.mouth.visible = e.op > 0.3;
+    /* aware: full monstrous body, the mouth swelling as it closes in; unaware: only drawn lines */
+    const dd = Math.hypot(e.x - player.x, e.z - player.z);
+    e.vis = damp(e.vis ?? 0, e.st === 'wander' ? 0 : 1, e.st === 'wander' ? 1.2 : 3, dt);
+    setFace(e.h, e.eye, e.mouth * lerp(1, CFG.mouthMax, e.vis * (1 - smooth(1.5, 12, dd))));
+    e.h.mat.uniforms.uOp.value = (e.kind === 'crawler' ? 1.3 : 1.25) * e.op;
+    e.h.mat.uniforms.uLine.value = 1 - e.vis;
+    e.h.mouth.visible = e.op > 0.3 && e.vis > 0.25;
     for (const g of e.h.glows) g.material.opacity = (e.st === 'wander' ? 0.8 : 1) * e.op;
   }
   SW.fear = Math.max(0, SW.fear - dt * (W.inRefuge ? 0.35 : 0.06));
@@ -3483,7 +3696,10 @@ function updateTristesse(dt) {
   H.muffled = wantHide || !!W.inBooth;
 
   let pr = '';
-  if (!busy) {
+  const sp2 = stationInteract(dt);
+  if (sp2 === 'open') return;
+  if (sp2) pr = sp2;
+  else if (!busy) {
     if (W.inBooth) {
       pr = '<kbd>E</kbd> sortir';
       if (consume('KeyE', 'Space')) exitBooth();
@@ -3504,7 +3720,7 @@ function updateTristesse(dt) {
       }
     }
   }
-  if (promptKey === '' || promptKey === loc('pickup.prompt') || promptKey === loc('booth.dead')) prompt(pr);
+  if (promptKey === '' || [loc('pickup.prompt'), loc('booth.dead'), loc('map.prompt'), loc('lever.prompt'), loc('cart.locked'), loc('cart.prompt')].includes(promptKey)) prompt(pr);
 
   if (W.finalOn && !W.done2) {
     if (!busy) W.finalT += dt;
@@ -3620,6 +3836,11 @@ function updateFog(dt) {
 function updateAudio(dt) {
   updateListener();
   const tenseMix = state === 'tristesse' || state === 'final';
+  if (S.breath) {
+    const out = 1 - player.stamina;
+    setG(S.breath, (player.tired ? 0.16 : 0.12 * smooth(0.35, 1, out)) * (state === 'title' ? 0 : 1), 0.4);
+    S.breathLfo.frequency.setTargetAtTime(player.tired ? 1.2 : 0.55 + 0.6 * out, AC.currentTime, 0.5);
+  }
   S.whisp.update(dt, clamp(W.whisper, 0, 1.4) * (tenseMix ? 0.3 : 1));
   if (S.mv) {
     const near = tenseMix ? SWARM.filter(e => e.active && !e.dying).map(e => ({ e, d: Math.hypot(e.x - player.x, e.z - player.z) })).sort((a, b) => a.d - b.d) : [];
@@ -3661,7 +3882,6 @@ function updateAudio(dt) {
     MUS.mod.piano = -(W.deniPassivity || 0) * 0.6;
   }
   MUS.update(dt);
-  if (tense && !A.kind) setG(S.wind, 0.2 * (1 - W.danger), 1.2);
   if (C.active && C.gp.visible && !C.jump) {
     placePanner(S.cPan, C.x, 3, C.z);
     const vol = C.freeze ? 0 : (C.mode === 'hunt' ? 0.7 : 0.4) * C.op;
@@ -3716,6 +3936,7 @@ function updateWorld(dt) {
     st.disc.material.opacity = 0.32 * k;
     st.gp.traverse(o => { if (o.isSprite) { o.userData.o0 ??= o.material.opacity; o.material.opacity = o.userData.o0 * k; } else if (o.isMesh && o.material.fog === false) o.visible = k > 0.05; });
   });
+  updateWeather(dt);
   updateFog(dt);
 }
 
@@ -3749,6 +3970,54 @@ function updateVolume() {
   P.uLights.value.forEach((v, i) => { const l = VOL_L[i]; if (l) v.set(l.x, l.y, l.z, l.w); else v.set(0, -100, 0, 0); });
 }
 
+const LIFE = { kick: 0 };
+/* ---------- weather ---------- */
+const WX = { rainAt: vr(0.2, 0.42), stormAt: vr(0.55, 0.78), dark: vr(0.25, 0.45), wind: vr(0.6, 1.1), rain: 0, storm: 0, nextBolt: 0, t: 0 };
+const rainGeo = new THREE.BufferGeometry(), RAIN_N = TOUCH ? 450 : 900;
+rainGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN_N * 6), 3));
+const rainSeg = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({ color: 0xc9c4b8, transparent: true, opacity: 0, depthWrite: false }));
+rainSeg.frustumCulled = false; scene.add(rainSeg);
+const rainDrops = Array.from({ length: RAIN_N }, () => [mr(-14, 14), mr(0, 12), mr(-14, 14)]);
+function thunder(x, z, amp) {
+  if (!AC) return;
+  const t = AC.currentTime, pn = panner(30); placePanner(pn, x, 40, z); pn.connect(S.world); pn.connect(g(0.8, S.rev));
+  thump(t, amp, 32, pn, 1.6); burst(t, { dur: 2.6, amp: amp * 0.5, type: 'lowpass', freq: 160, buf: S.brown, dest: pn, attack: 0.08 });
+  burst(t + 0.05, { dur: 0.4, amp: amp * 0.35, type: 'lowpass', freq: 900, buf: S.brown, dest: pn });
+  setTimeout(() => pn.disconnect(), 5000);
+}
+function updateWeather(dt) {
+  const on = (state === 'tristesse' || state === 'final') && !W.done2;
+  const tens = on ? clamp((W.density || 0) / 4, 0, 1) : 0;
+  WX.rain = damp(WX.rain, smooth(WX.rainAt, WX.rainAt + 0.25, tens), 0.5, dt);
+  WX.storm = damp(WX.storm, smooth(WX.stormAt, WX.stormAt + 0.15, tens), 0.5, dt);
+  W.tension = tens;
+  if (on) {
+    W.fogC.multiplyScalar(1 - WX.dark * tens * (1 - (W.calm || 0) * 0.6));
+    if (AC && !A.kind) { setG(S.wind, 0.2 * (1 + WX.wind * tens) * (1 - 0.5 * (W.danger || 0)), 1.5); setG(S.rain, 0.1 * WX.rain * (W.inShelter ? 0.6 : 1), 1.5); }
+  }
+  rainSeg.material.opacity = 0.35 * WX.rain;
+  rainSeg.visible = WX.rain > 0.02;
+  if (rainSeg.visible) {
+    const pa = rainGeo.attributes.position.array, cx = camera.position.x, cy = camera.position.y, cz = camera.position.z, fall = 16 * dt;
+    for (let i = 0; i < RAIN_N; i++) {
+      const d = rainDrops[i]; d[1] -= fall; if (d[1] < -2) { d[1] += 14; d[0] = mr(-14, 14); d[2] = mr(-14, 14); }
+      const x = cx + d[0], y = cy + d[1] - 1.6, z = cz + d[2], o = i * 6;
+      if (inHut(x, z, 0.2)) { pa[o + 1] = pa[o + 4] = -50; continue; }
+      pa[o] = x; pa[o + 1] = y; pa[o + 2] = z; pa[o + 3] = x - 0.06; pa[o + 4] = y - 0.55; pa[o + 5] = z;
+    }
+    rainGeo.attributes.position.needsUpdate = true;
+  }
+  if (on && WX.storm > 0.1) {
+    if (!WX.nextBolt) WX.nextBolt = gt + vr(6, 12);
+    if (gt > WX.nextBolt) {
+      WX.nextBolt = gt + vr(9, 24) / (0.4 + WX.storm);
+      const a = mr(0, 6.28), dist = mr(40, 120);
+      P.uFlashColor.value.setRGB(0.9, 0.9, 0.95); fx.flash = Math.max(fx.flash, 0.28 * WX.storm); tween(fx, 'flash', 0, 0.35);
+      setTimeout(() => { fx.flash = Math.max(fx.flash, 0.18 * WX.storm); tween(fx, 'flash', 0, 0.5); }, 140);
+      setTimeout(() => thunder(player.x + Math.sin(a) * dist, player.z + Math.cos(a) * dist, 0.9 * WX.storm), dist / 0.34);
+    }
+  }
+}
 /* ---------- main loop ---------- */
 let last = performance.now();
 function frame(now) {
@@ -3775,6 +4044,14 @@ function frame(now) {
   P.uAberr.value = fx.aberr;
   P.uFade.value = clamp(fx.fade, 0, 1);
   P.uFlash.value = clamp(fx.flash, 0, 1);
+  {
+    const lf = $('life'), on = W.heartOwned && (state === 'tristesse' || state === 'final') && !W.done2;
+    const life = clamp(1 - (typeof SW !== 'undefined' ? SW.fear : 0), 0, 1);
+    LIFE.kick = Math.max(0, LIFE.kick - 0.06);
+    lf.style.opacity = on ? (0.25 + 0.7 * life).toFixed(2) : '0';
+    lf.style.filter = 'saturate(' + (0.2 + 0.8 * life).toFixed(2) + ') brightness(' + (0.45 + 0.55 * life).toFixed(2) + ')';
+    lf.style.transform = 'scale(' + (1 + 0.08 * heartPulse() * (0.5 + life) + 0.45 * LIFE.kick).toFixed(3) + ')';
+  }
   P.uHurt.value = clamp(Math.max(fx.hurt, (typeof SW !== 'undefined' ? SW.fear : 0) * 0.45), 0, 1);
   const lbh = (cine.k * 11).toFixed(2) + 'vh';
   if (lbh !== cine.last) { cine.last = lbh; $('lbT').style.height = $('lbB').style.height = lbh; }
@@ -3822,7 +4099,7 @@ function initTouch() {
   lz.addEventListener('pointerdown', e => { TI.lookId = e.pointerId; TI.lx = e.clientX; TI.ly = e.clientY; try { lz.setPointerCapture(e.pointerId); } catch (err) {} });
   lz.addEventListener('pointermove', e => {
     if (e.pointerId !== TI.lookId) return;
-    look.dx += (e.clientX - TI.lx) * 1.8; look.dy += (e.clientY - TI.ly) * 1.8;
+    look.dx += (e.clientX - TI.lx) * CFG.touchLook; look.dy += (e.clientY - TI.ly) * CFG.touchLook * 0.75;
     TI.lx = e.clientX; TI.ly = e.clientY;
   });
   const endLook = e => { if (e.pointerId === TI.lookId) TI.lookId = null; };
@@ -3921,7 +4198,7 @@ $('start').addEventListener('click', async () => {
 });
 $('again').addEventListener('click', () => location.reload());
 
-window.__rh = { frame: t => frame(t), huts, oddities, ODD, girl, SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
+window.__rh = { STATION, handcar, CFG, WX, RUN_SEED, openMap, frame: t => frame(t), huts, oddities, ODD, girl, SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
 </script>
 
 </body>
