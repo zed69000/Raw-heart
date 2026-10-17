@@ -78,6 +78,13 @@ kbd{font-family:var(--mono);color:var(--ash);border:1px solid var(--smoke);paddi
 .page #cardBody{display:flex;flex-direction:column;gap:.7rem;min-height:9rem}
 #card{background:rgba(4,5,5,.92);justify-content:flex-start;cursor:pointer}
 #pause{z-index:10}
+#splash{position:fixed;inset:0;z-index:30;background:#050606;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;animation:splashOut .9s ease 2.6s forwards}
+#splash svg{width:min(46vw,42vh);height:auto;opacity:0;animation:splashIn 1s ease .2s forwards}
+#splash .studio{margin:.4rem 0 0;font-family:var(--mono);font-size:clamp(.9rem,3.2vh,1.3rem);letter-spacing:.42em;color:#e6dcc8;opacity:0;animation:splashIn 1s ease .6s forwards}
+#splash .presents{margin:0;font-size:.7rem;letter-spacing:.3em;color:var(--smoke);opacity:0;animation:splashIn 1s ease 1s forwards}
+#splash.skip{animation:splashOut .3s ease forwards}
+@keyframes splashIn{to{opacity:1}}
+@keyframes splashOut{to{opacity:0;visibility:hidden}}
 #life{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:calc(16px + env(safe-area-inset-left,0px));width:26px;height:24px;opacity:0;transition:opacity .8s;pointer-events:none;z-index:3}
 #life svg{width:100%;height:100%;overflow:visible}#life path{fill:#a3170f;stroke:#e6dcc8;stroke-width:1.4;transition:fill .3s}
 #life.hit path{fill:#f4efe4}
@@ -178,7 +185,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v19 · 17.10.2026</p>
+  <p class="ver" id="ver">v20 · 18.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -206,6 +213,32 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   <button id="again" type="button">Rejouer</button>
 </section>
 
+<section id="splash" aria-label="Musclor Duck">
+  <svg viewBox="0 0 240 200" aria-hidden="true" fill="none" stroke="#e6dcc8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 150C40 120 55 85 95 82C120 80 140 95 150 120C160 145 140 165 105 165C85 166 70 162 60 150Z"/>
+    <path d="M112 74C108 86 110 92 114 100"/><circle cx="128" cy="52" r="24"/>
+    <path d="M149 48C168 44 182 49 186 56C176 63 162 64 148 60Z" fill="#b3121b" stroke="#b3121b"/><circle cx="134" cy="45" r="3" fill="#e6dcc8"/>
+    <path d="M122 112C140 90 174 92 194 116"/><path d="M124 130C146 132 170 130 194 124"/><path d="M158 100C162 106 163 112 161 118"/>
+    <path d="M194 116C202 104 206 92 202 80"/><path d="M194 124C210 112 216 96 212 82"/><circle cx="207" cy="74" r="9"/>
+    <path d="M85 165L82 186M110 165L114 186M70 187H93M104 187H126"/>
+  </svg>
+  <p class="studio">MUSCLOR DUCK</p><p class="presents">présente</p>
+</section>
+<script>
+/* load watchdog: if the game script fails (blocked CDN, old WebView), say why on the title screen instead of failing silently */
+(function () {
+  var errs = [];
+  function show(msg) { var n = document.getElementById('note'); if (n) { n.textContent = msg; n.style.color = '#e0735f'; } }
+  addEventListener('error', function (e) {
+    var t = e.target;
+    errs.push(t && t.tagName === 'SCRIPT' ? 'script ' + (t.src || 'module') : (e.message || 'erreur') + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : ''));
+    show('Erreur : ' + errs.join(' | '));
+  }, true);
+  addEventListener('unhandledrejection', function (e) { errs.push(String(e.reason && e.reason.message || e.reason)); show('Erreur : ' + errs.join(' | ')); });
+  setTimeout(function () { if (!window.__rh) show('Le jeu n’a pas pu se charger. Vérifie la connexion internet. ' + errs.join(' | ')); }, 9000);
+  document.getElementById('splash').addEventListener('click', function () { this.classList.add('skip'); });
+})();
+</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 THREE.ColorManagement.enabled = false;

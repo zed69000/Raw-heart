@@ -1,5 +1,5 @@
 # Builds an installable Android APK of the web game (public/) wrapped with Capacitor.
-# The Android project is generated on each build, so nothing Android-specific is kept in the repo.
+# The Android project is generated on each build; only the overrides in android-app/native are kept in the repo.
 workflows:
   android-apk:
     name: Raw Heart Android (APK)
@@ -18,12 +18,29 @@ workflows:
     scripts:
       - name: Install Capacitor
         script: npm install
+      - name: Prepare the web files (Three.js bundled, works offline)
+        script: |
+          rm -rf www && cp -R ../public www
+          mkdir -p www/vendor
+          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js -o www/vendor/three.module.js
+          perl -pi -e 's#https://cdn\.jsdelivr\.net/npm/three\@0\.160\.0/build/three\.module\.js#./vendor/three.module.js#' www/index.html
+          grep -q "./vendor/three.module.js" www/index.html
       - name: Generate the Android project
         script: |
           npx cap add android
-          # landscape only, full screen, screen kept on while playing
-          perl -0pi -e 's/<activity /<activity android:screenOrientation="sensorLandscape" /' android/app/src/main/AndroidManifest.xml
-          perl -0pi -e 's#(<style name="AppTheme.NoActionBar"[^>]*>)#$1\n        <item name="android:windowFullscreen">true</item>\n        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>#' android/app/src/main/res/values/styles.xml
+          RES=android/app/src/main/res
+          # landscape only
+          perl -0pi -e 's/<activity\b/<activity android:screenOrientation="sensorLandscape"/' android/app/src/main/AndroidManifest.xml
+          grep -q 'sensorLandscape' android/app/src/main/AndroidManifest.xml
+          # full screen activity, dark launch screen, game icon
+          cp native/java/MainActivity.java android/app/src/main/java/com/zed69000/rawheart/MainActivity.java
+          find $RES -name 'splash.png' -delete
+          cp native/splash.xml $RES/drawable/splash.xml
+          rm -rf $RES/mipmap-anydpi-v26
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do cp native/res/mipmap-$d/*.png $RES/mipmap-$d/; done
+          perl -0pi -e 's#(<style name="AppTheme.NoActionBarLaunch"[^>]*>)#$1\n        <item name="windowSplashScreenBackground">\#050606</item>#' $RES/values/styles.xml
+          perl -0pi -e 's#(<style name="AppTheme.NoActionBar"[^>]*>)#$1\n        <item name="android:windowBackground">\#050606</item>\n        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>#' $RES/values/styles.xml
+          cat $RES/values/styles.xml
           npx cap sync android
       - name: Build the APK
         script: |

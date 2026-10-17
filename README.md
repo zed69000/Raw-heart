@@ -23,4 +23,4 @@ Le fichier `public/_headers` règle le cache (la page est toujours revérifiée,
 2. Lancer le workflow « Raw Heart Android (APK) ».
 3. Télécharger le fichier `.apk` dans les artefacts du build et l'installer sur le téléphone (autoriser l'installation d'applications inconnues).
 
-L'APK est une version de débogage, non signée pour le Play Store. Three.js est chargé depuis un CDN : le jeu a besoin d’une connexion internet pour démarrer.
+L'APK est une version de débogage, non signée pour le Play Store. Le build copie Three.js dans l'application, qui fonctionne donc sans connexion. L'application s'ouvre en paysage, en plein écran (barres système masquées, un glissement les fait réapparaître) et garde l'écran allumé. Les réglages Android propres au jeu (activité plein écran, icône, écran de lancement) sont dans `android-app/native/`.
