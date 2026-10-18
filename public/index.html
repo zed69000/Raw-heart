@@ -115,6 +115,8 @@ canvas{touch-action:none}
 .tb{position:absolute;pointer-events:auto;touch-action:none;width:76px;height:76px;border-radius:50%;padding:0;font-size:.6rem;letter-spacing:.12em;color:var(--ash);border:1px solid rgba(207,210,207,.45);background:rgba(5,6,6,.35)}
 .tb.held{background:rgba(179,18,27,.4);border-color:var(--ember)}
 .tb.off{opacity:.2;pointer-events:none}
+.tb.urge{animation:urge .55s ease-in-out infinite alternate;border-color:var(--ember)}
+@keyframes urge{from{transform:scale(1);box-shadow:0 0 0 0 rgba(179,18,27,0)}to{transform:scale(1.12);box-shadow:0 0 18px 4px rgba(179,18,27,.45)}}
 .tb.gone,.stick.gone,#lookZone.gone{display:none}
 #tAct{right:calc(26px + env(safe-area-inset-right,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 #tFlare{--p:1;right:calc(118px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));background:conic-gradient(rgba(179,18,27,.45) calc(var(--p) * 1turn),rgba(5,6,6,.35) 0)}
@@ -168,7 +170,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   <div id="stick" class="stick"><div class="knob"></div></div>
   <button class="tb" id="tAct" type="button">Agir</button>
   <button class="tb" id="tFlare" type="button">Éclat</button>
-  <button class="tb" id="tHide" type="button">Cacher</button>
+  <button class="tb" id="tHide" type="button">Serrer</button>
   <button class="tb" id="tLook" type="button">Regarder</button>
   <button class="tb small" id="tPause" type="button" aria-label="Pause">II</button>
 </div>
@@ -275,7 +277,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
 /* ---------- languages ---------- */
 /* Texts come from the "Raw Heart — Textes du jeu" doc (one tab per language), keyed by the doc's IDs. */
-const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lum...","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Cacher","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the li...","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Hide","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
+const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lumière, et elle s’éclaire quand je suis sur le bon chemin.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","hide.cine":"Mes mains serrent le cœur contre moi. Sa lumière s’étouffe.","hide.learn":"Il ne m’a pas vu. Serré contre moi, le cœur ne les attire plus.","hide.urge":"Le serrer contre moi. Vite.","shadows.1":"Des silhouettes, dans la brume. Elles marchent sans moi.","shadows.2":"Celle-là s’est arrêtée. Elle me regarde.","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Serrer","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the light, and it glows when I’m on the right path.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","hide.cine":"My hands press the heart against me. Its light chokes.","hide.learn":"It didn’t see me. Held close, the heart no longer draws them.","hide.urge":"Hold it close. Now.","shadows.1":"Figures, in the mist. They walk on without me.","shadows.2":"That one stopped. It’s looking at me.","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Clutch","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
 const LANGS = [['fr', 'Français'], ['en', 'English']];
 const VLANG = { fr: 'fr-FR', en: 'en-US', de: 'de-DE', es: 'es-ES', it: 'it-IT', pt: 'pt-BR', pl: 'pl-PL', ru: 'ru-RU', ja: 'ja-JP', ko: 'ko-KR', zh: 'zh-CN', tr: 'tr-TR' };
 let LANG = (() => {
@@ -594,10 +596,10 @@ function T(str) {
   return str
     .replace(/<kbd>ZQSD<\/kbd> \/ <kbd>WASD<\/kbd> marcher · <kbd>Maj<\/kbd> courir/, '<kbd>Stick</kbd> marcher · pousser à fond pour courir')
     .replace(/<kbd>Clic gauche<\/kbd> ou <kbd>R<\/kbd>/g, '<kbd>Éclat</kbd>')
-    .replace(/<kbd>clic droit<\/kbd> ou <kbd>F<\/kbd>/g, '<kbd>Cacher</kbd>')
+    .replace(/<kbd>clic droit<\/kbd> ou <kbd>F<\/kbd>/g, '<kbd>Serrer</kbd>')
     .replace(/<kbd>(E|Espace)<\/kbd>/g, '<kbd>Agir</kbd>')
     .replace(/<kbd>V<\/kbd>/g, '<kbd>Regarder</kbd>')
-    .replace(/Clic gauche ou R/g, 'Bouton Éclat').replace(/Clic droit ou F/g, 'Bouton Cacher maintenu')
+    .replace(/Clic gauche ou R/g, 'Bouton Éclat').replace(/Clic droit ou F/g, 'Bouton Serrer maintenu')
     .replace(/\(E maintenu\)/g, '(Agir maintenu)')
     .replace(/Espace ou clic/g, 'Touche l’écran')
     .replace(/<kbd>E<\/kbd>/g, '<kbd>' + loc('touch.act') + '</kbd>').replace(/<kbd>V<\/kbd>/g, '<kbd>' + loc('touch.look') + '</kbd>')
@@ -2288,18 +2290,25 @@ const heart = (() => {
   return { gp, core, mat, light, hand, shown: false, hidden: false, k: 0, base: 2.2 };
 })();
 
-/* the orienteering compass in the left hand: its needle points at the next beacon, its dial keeps north */
+/* the compass from their adventures, in the left hand: no cardinal letters, a child's drawing on the dial,
+   and a needle that only ever points at the light to reach */
 function compassFaceTex() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const x = c.getContext('2d');
-  x.fillStyle = '#ddd2ba'; x.beginPath(); x.arc(128, 128, 126, 0, 7); x.fill();
-  x.strokeStyle = '#1d1712'; x.lineWidth = 3;
-  for (let i = 0; i < 36; i++) {
-    const a = i / 36 * Math.PI * 2, r0 = i % 9 === 0 ? 92 : 108;
-    x.beginPath(); x.moveTo(128 + Math.sin(a) * r0, 128 - Math.cos(a) * r0); x.lineTo(128 + Math.sin(a) * 120, 128 - Math.cos(a) * 120); x.stroke();
-  }
-  x.fillStyle = '#1d1712'; x.font = 'bold 34px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  [['N', 0], ['E', 1], ['S', 2], ['O', 3]].forEach(([n, i]) => { const a = i * Math.PI / 2; x.fillText(n, 128 + Math.sin(a) * 70, 128 - Math.cos(a) * 70); });
+  x.fillStyle = '#e6dcc4'; x.beginPath(); x.arc(128, 128, 126, 0, 7); x.fill();
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  x.strokeStyle = '#2a2018'; x.lineWidth = 4;
+  x.beginPath();
+  for (let i = 0; i <= 64; i++) { const a = i / 64 * Math.PI * 2, r = 112 + Math.sin(i * 1.7) * 2.5; x[i ? 'lineTo' : 'moveTo'](128 + Math.sin(a) * r, 128 - Math.cos(a) * r); }
+  x.stroke();
+  const star = (cx, cy, r) => { x.beginPath(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, rr = i % 2 ? r * 0.45 : r; x[i ? 'lineTo' : 'moveTo'](cx + Math.sin(a) * rr, cy - Math.cos(a) * rr); } x.closePath(); x.stroke(); };
+  x.lineWidth = 3; x.strokeStyle = '#6b5a3c';
+  [[60, 70, 11], [196, 82, 9], [72, 190, 8], [188, 186, 12], [128, 214, 7]].forEach(([a, b, r]) => star(a, b, r));
+  x.fillStyle = '#9a1612'; x.beginPath();
+  x.moveTo(128, 58); x.bezierCurveTo(128, 44, 108, 40, 106, 54); x.bezierCurveTo(104, 66, 120, 74, 128, 84);
+  x.bezierCurveTo(136, 74, 152, 66, 150, 54); x.bezierCurveTo(148, 40, 128, 44, 128, 58); x.fill();
+  x.fillStyle = '#2a2018'; x.font = 'italic bold 30px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText('J', 128, 170);
   return new THREE.CanvasTexture(c);
 }
 const compass = (() => {
@@ -2317,21 +2326,25 @@ const compass = (() => {
     const m = new THREE.Mesh(new THREE.ShapeGeometry(sh).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color, fog: false, side: THREE.DoubleSide }));
     needle.add(m); return m;
   };
-  tri(0.04, 0x9a1612);
+  tri(0.04, 0xc8401c);
   tri(-0.03, 0x1d1712);
+  const tip = glowSprite(0.05, 0xffd9a0, 0.2); tip.position.set(0, 0.004, -0.04); needle.add(tip);
   const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.004, 8), new THREE.MeshBasicMaterial({ color: 0x3a2f20, fog: false })); pin.position.y = 0.012; gp.add(pin);
   const hand = makeHand(false, false); hand.gp.position.set(-0.006, -0.026, 0.006); hand.gp.rotation.set(0, -0.8, 0); gp.add(hand.gp); hand.curl(0.85);
   gp.visible = false; camera.add(gp);
-  return { gp, dial, needle, hand, k: 0, shown: false, target: null, jolt: 0 };
+  return { gp, dial, needle, hand, tip, k: 0, shown: false, target: null, jolt: 0, raise: 0, still: 0, align: 0, chimeT: 0, wasAligned: false };
 })();
 function updateCompass(dt) {
   compass.k = damp(compass.k, compass.shown ? 1 : 0, 4, dt);
   compass.gp.visible = compass.k > 0.01;
   if (!compass.gp.visible) return;
+  /* standing still raises it toward the eyes, out of the burnt edge of the page; walking lowers it again */
+  compass.still = player.moving || busy ? 0 : compass.still + dt;
+  compass.raise = damp(compass.raise, compass.still > 0.45 ? 1 : 0, 3.5, dt);
+  const rk = compass.raise;
   const sway = player.moving ? Math.sin(player.bob + 1.3) * 0.01 : 0;
-  compass.gp.position.set(-0.15 + sway, -0.2 - (1 - compass.k) * 0.25 + Math.abs(sway) * 0.5, -0.38);
-  compass.gp.rotation.set(0.95, 0.25, 0.08);
-  compass.dial.rotation.y = -player.yaw;
+  compass.gp.position.set(lerp(-0.13, -0.075, rk) + sway, lerp(-0.17, -0.105, rk) - (1 - compass.k) * 0.25 + Math.abs(sway) * 0.5, lerp(-0.36, -0.29, rk));
+  compass.gp.rotation.set(lerp(0.95, 1.22, rk), lerp(0.25, 0.12, rk), 0.08);
   compass.hand.curl(0.85, 0.03 * SW.fear);
   compass.jolt = Math.max(0, compass.jolt - dt * 1.2);
   const t = compass.target;
@@ -2343,6 +2356,19 @@ function updateCompass(dt) {
     let cur = compass.needle.rotation.y, d = rel - cur;
     while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
     compass.needle.rotation.y = cur + d * Math.min(1, dt * 6) + Math.sin(gt * 7) * 0.02;
+    /* facing the light: the needle tip glows and a music-box note answers, so it can be read without looking */
+    let off = compass.needle.rotation.y; while (off > Math.PI) off -= 2 * Math.PI; while (off < -Math.PI) off += 2 * Math.PI;
+    compass.align = damp(compass.align, 1 - smooth(0.12, 0.5, Math.abs(off)), 6, dt);
+    compass.tip.material.opacity = 0.2 + 0.8 * compass.align;
+    compass.tip.scale.setScalar(0.05 * (1 + 0.6 * compass.align));
+    compass.chimeT -= dt;
+    const aligned = compass.align > 0.8;
+    if (aligned && !compass.wasAligned && compass.chimeT <= 0 && compass.k > 0.9 && !busy) {
+      compass.chimeT = 3;
+      if (AC) musicBox(AC.currentTime, 81, 0.05, S.ui);
+      if (TOUCH && navigator.vibrate) navigator.vibrate(14);
+    }
+    compass.wasAligned = aligned;
   }
 }
 
@@ -2447,9 +2473,94 @@ function scheduleGiants() {
   const second = W.fragIndex >= 2;
   launchGiant(giants[0], { side: Math.random() < 0.5 ? 1 : -1, ahead: second ? 40 : 60, look: second });
   if (second) setTimeout(() => { if (!giants[1].active) launchGiant(giants[1], { side: -1, ahead: 95, lateral: 110, speed: 0.9, len: 220 }); }, 9000);
+  if (GI.waves <= 2) setTimeout(() => { const g = giants[0]; if (g.active && !busy) cineLook(g.x, groundH(g.x, g.z) + 2.6 * g.scale, g.z, 1.8); }, 2500);
   if (GI.waves === 1) setTimeout(() => say(loc('giants.first'), 4, 'mono'), 6000);
   if (second && GI.waves <= 2) setTimeout(() => say(loc('giants.look'), 4.2, 'mono'), 16000);
   GI.next = gt + mr(80, 110);
+}
+
+/* Opening nightmare: smoke people wander in the mist around the wagon, some with a suitcase, none heading anywhere.
+   Now and then one stops and turns its head toward the player. Stared at up close, it crumbles to ash and returns elsewhere.
+   As denial deepens they close in; when the player finally stands up, they all fall apart. */
+const STR = { on: false, k: 0, started: false, stared: false, list: [] };
+for (let i = 0; i < 6; i++) {
+  const h = makeHumanoid();
+  const mat = smokeMat(0x3d3832, 0);
+  const mask = new THREE.MeshBasicMaterial({ color: 0x8f887c, transparent: true, opacity: 0 });
+  h.gp.traverse(o => { if (o.material === M.creature) o.material = mat; else if (o.material === maskMat) o.material = mask; });
+  const scale = mr(0.74, 0.86);
+  h.gp.scale.setScalar(scale);
+  if (i % 2 === 0) { const sc = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.36, 0.16), mat); sc.position.set(0.5, 0.36, 0.5); h.gp.add(sc); }
+  STR.list.push({ h, mat, mask, scale, x: 0, z: 0, tx: 0, tz: 0, yaw: 0, sp: mr(0.45, 0.75), phase: mr(0, 6), op: 0, gone: true, back: 0,
+    stare: 0, stareNext: mr(5, 12), looked: 0 });
+}
+function strollRing() { return [lerp(10, 6, STR.k), lerp(24, 13, STR.k)]; }
+function strollPoint(front) {
+  const [r0, r1] = strollRing();
+  const a = player.yaw + (front ? mr(-0.7, 0.7) : mr(0, Math.PI * 2)), r = mr(r0, r1);
+  return [player.x - Math.sin(a) * r, player.z - Math.cos(a) * r];
+}
+function strollSpawn(s, front) {
+  [s.x, s.z] = strollPoint(front);
+  [s.tx, s.tz] = strollPoint(false);
+  s.yaw = Math.atan2(s.tx - s.x, s.tz - s.z);
+  s.gone = false; s.op = 0; s.stare = 0; s.looked = 0;
+}
+function strollersStart() {
+  STR.on = true; STR.k = 0;
+  STR.list.forEach((s, i) => { s.back = i < 3 ? 0 : mr(1.5, 6); s.gone = true; s.op = 0; });
+}
+function strollersEnd() {
+  STR.on = false;
+  STR.list.forEach((s, i) => {
+    if (s.gone || s.op < 0.05) { s.gone = true; return; }
+    setTimeout(() => { s.gone = true; ashBurst(s.x, groundH(s.x, s.z) + 0.3, s.z, 80, 0.9, 2); }, i * 140);
+  });
+}
+function updateStrollers(dt) {
+  const fwX = -Math.sin(player.yaw), fwZ = -Math.cos(player.yaw);
+  const [r0, r1] = strollRing();
+  STR.list.forEach((s, i) => {
+    if (s.gone) {
+      s.op = damp(s.op, 0, 3, dt);
+      if (STR.on) { s.back -= dt; if (s.back <= 0) strollSpawn(s, i < 3 && !STR.started); }
+    } else {
+      const dx = s.x - player.x, dz = s.z - player.z, d = Math.hypot(dx, dz) || 1;
+      const ang = Math.acos(clamp((fwX * dx + fwZ * dz) / d, -1, 1));
+      s.stareNext -= dt;
+      if (s.stare <= 0 && s.stareNext <= 0) { s.stare = mr(2.2, 3.5); s.stareNext = mr(9, 16) * lerp(1, 0.5, STR.k); }
+      let sp = s.sp;
+      if (s.stare > 0) {
+        s.stare -= dt; sp = 0;
+        if (!STR.stared && ang < 0.5) { STR.stared = true; say(loc('shadows.2'), 3.2, 'mono'); }
+      }
+      let mx = s.tx - s.x, mz = s.tz - s.z, md = Math.hypot(mx, mz);
+      if (md < 1 || Math.hypot(s.tx - player.x, s.tz - player.z) > r1 + 4) { [s.tx, s.tz] = strollPoint(false); mx = s.tx - s.x; mz = s.tz - s.z; md = Math.hypot(mx, mz); }
+      if (md > 0.01 && sp > 0) { s.x += mx / md * sp * dt; s.z += mz / md * sp * dt; }
+      if (d < r0 * 0.7) { s.x += dx / d * 1.5 * dt; s.z += dz / d * 1.5 * dt; }
+      s.phase += sp * dt / (0.9 * s.scale) * Math.PI;
+      poseHumanoid(s.h, s.phase, sp > 0 ? 1 : 0, s.stare > 0 ? 0.3 : Math.sin(s.phase * 0.5) * 0.1);
+      const faceYaw = s.stare > 0 ? Math.atan2(player.x - s.x, player.z - s.z) : Math.atan2(mx, mz);
+      let dy = faceYaw - s.yaw; while (dy > Math.PI) dy -= 2 * Math.PI; while (dy < -Math.PI) dy += 2 * Math.PI;
+      s.yaw += dy * Math.min(1, dt * (s.stare > 0 ? 2.5 : 1.2));
+      setEyes(s.h, s.stare > 0 ? 0.9 * s.op : 0.12 * s.op);
+      s.op = damp(s.op, 1, 0.9, dt);
+      STR.started = true;
+      /* stared at up close, it does not hold */
+      if (ang < 0.14 && d < 12) s.looked += dt; else s.looked = Math.max(0, s.looked - dt);
+      if (s.looked > 1.1) {
+        s.gone = true; s.back = mr(3, 7);
+        ashBurst(s.x, groundH(s.x, s.z) + 0.3, s.z, 70, 0.8, 1.9);
+        W.whisper += 0.4;
+      }
+    }
+    s.h.gp.rotation.y = s.yaw;
+    s.h.gp.position.set(s.x, groundH(s.x, s.z), s.z);
+    s.mat.uniforms.uOp.value = 1.15 * s.op;
+    s.mask.opacity = 0.3 * s.op;
+    s.h.gp.visible = s.op > 0.01;
+    if (s.gone) setEyes(s.h, 0);
+  });
 }
 
 const hemi = new THREE.HemisphereLight(0x495054, 0x090909, 0.15);
@@ -2648,6 +2759,7 @@ async function intro() {
   H.on = true; H.bpm = 84; H.amp = 0.3; H.jitter = 0.05;
   await wait(1.2);
   player.canLook = true;
+  strollersStart();
   tween(fx, 'fade', 0, 4.5);
   tween(fx, 'tunnel', 0.25, 5);
   await wait(3);
@@ -2665,6 +2777,7 @@ async function deni() {
       W.whisper = 0.25; setG(S.wind, 0.12, 2);
       H.on = true; H.bpm = 92;
       MUS.set('deni');
+      strollersStart();
       await tween(fx, 'fade', 0, 2.5);
     }
     const T = loop === 1 ? 22 : 30;
@@ -2674,6 +2787,8 @@ async function deni() {
       t = Math.min(T, t + (W._dt || 0.016));
       const k = t / T;
       W.deniPassivity = k;
+      STR.k = k;
+      if (loop === 1 && t > 5 && !STR.said) { STR.said = true; say(loc('shadows.1'), 3.6, 'mono'); }
       W.fogC.copy(DENI_FOG).lerp(FOG_NIGHT, Math.pow(k, 1.3));
       W.whisper = 0.12 + 0.95 * k + (loop - 1) * 0.1;
       fx.tunnel = 0.25 + 0.65 * Math.pow(k, 1.5);
@@ -2685,6 +2800,7 @@ async function deni() {
       }
     }
     if (stood) break;
+    strollersEnd();
     quay1.set(0);
     if (AC) thump(AC.currentTime, 0.6, 140, S.world, 0.05);
     W.whisper = 1.4;
@@ -2696,6 +2812,7 @@ async function deni() {
     setG(S.wind, 0, 0.3);
     await wait(3.2);
   }
+  strollersEnd();
   prompt('');
 }
 
@@ -2981,7 +3098,7 @@ async function tristesse() {
   MUS.set('tristesse');
   compass.shown = true;
   W.introStart = gt;
-  showGirl(FRAGS[0].x, FRAGS[0].z, 15);
+  showGirl(FRAGS[0].x, FRAGS[0].z, 15, true);
   await wait(1.2);
   say(loc('girl.call'), 2.4, 'voice');
   await wait(8);
@@ -2992,11 +3109,17 @@ function setPoi(getPos, secs) {
   W.poi = { get x() { return getPos().x; }, get z() { return getPos().z; }, get y() { return getPos().y; }, until: gt + secs };
   promptFor(loc('look.prompt'), Math.min(secs, 6));
 }
-function showGirl(tx, tz, dist) {
+/* She shows up inside the field of view, leaning toward the memory, so she cannot be missed; then she walks toward it. */
+function showGirl(tx, tz, dist, guide = false) {
   const dx = tx - player.x, dz = tz - player.z, d = Math.hypot(dx, dz) || 1;
-  girl.x = player.x + dx / d * Math.min(dist, d - 2); girl.z = player.z + dz / d * Math.min(dist, d - 2);
-  girl.dx = dx / d; girl.dz = dz / d; girl.t = 0; girl.active = true; girl.gp.visible = true;
-  setPoi(() => ({ x: girl.x, z: girl.z, y: groundH(girl.x, girl.z) + 0.9 }), 8);
+  let rel = Math.atan2(-dx, -dz) - player.yaw;
+  while (rel > Math.PI) rel -= 2 * Math.PI; while (rel < -Math.PI) rel += 2 * Math.PI;
+  const a = player.yaw + clamp(rel, -0.6, 0.6), r = Math.min(dist, d - 2);
+  girl.x = player.x - Math.sin(a) * r; girl.z = player.z - Math.cos(a) * r;
+  const gx = tx - girl.x, gz = tz - girl.z, gd = Math.hypot(gx, gz) || 1;
+  girl.dx = gx / gd; girl.dz = gz / gd; girl.t = 0; girl.active = true; girl.gp.visible = true;
+  setPoi(() => ({ x: girl.x, z: girl.z, y: groundH(girl.x, girl.z) + 0.9 }), 12);
+  if (guide) setTimeout(() => { if (!busy && girl.active) cineLook(girl.x, groundH(girl.x, girl.z) + 0.9, girl.z, 1.4); }, 400);
 }
 function updateGirl(dt) {
   if (!girl.active) { girl.op = damp(girl.op, 0, 2, dt); }
@@ -3004,8 +3127,8 @@ function updateGirl(dt) {
     girl.t += dt;
     girl.x += girl.dx * 0.9 * dt; girl.z += girl.dz * 0.9 * dt;
     const gd = Math.hypot(girl.x - player.x, girl.z - player.z);
-    girl.op = damp(girl.op, girl.t < 10 && gd > 6 ? 0.95 : 0, 1.6, dt);
-    if (girl.t > 12.5 || (girl.t > 1 && girl.op < 0.02)) girl.active = false;
+    girl.op = damp(girl.op, girl.t < 13 && gd > 6 ? 0.95 : 0, 1.6, dt);
+    if (girl.t > 15.5 || (girl.t > 1 && girl.op < 0.02)) girl.active = false;
     if (state === 'tristesse' && H.bpm < 150) H.bpm += 25 * dt * (girl.t < 5.5 ? 1 : 0);
   }
   girl.mat.opacity = girl.op;
@@ -3103,6 +3226,51 @@ async function caught() {
   SW.nextWander = gt + 6;
   relayAfterRespawn();
 }
+/* First encounter: the hands clutch the heart on their own and the creature walks past without seeing.
+   Showing the reflex once replaces any tutorial; the prompt that follows only names the key. */
+async function hideLesson() {
+  W.hideLesson = true; W.forceHide = true;
+  player.canMove = false; player.vx = player.vz = 0;
+  const fwx = -Math.sin(player.yaw), fwz = -Math.cos(player.yaw), rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
+  const side = Math.random() < 0.5 ? 1 : -1;
+  const inside = (x, z) => [clamp(x, -46, 46), clamp(z, -280, -118)];
+  [C.x, C.z] = inside(player.x + fwx * 6 + rx * 15 * side, player.z + fwz * 6 + rz * 15 * side);
+  [C.tx, C.tz] = inside(player.x + fwx * 3.5 - rx * 17 * side, player.z + fwz * 3.5 - rz * 17 * side);
+  C.rx = C.x; C.rz = C.z; C.yaw = C.ryaw = Math.atan2(C.tx - C.x, C.tz - C.z);
+  C.active = true; C.gone = false; C.op = 1; C.mode = 'pass'; C.aggressive = false; C.huntSpeed = 2.4;
+  /* the director stays in relax for the whole scene: a peak would turn the creature into an aggressive hunter */
+  D.phase = 'relax'; D.t = 0; D.intensity = 0.5;
+  if (AC) rasp(AC.currentTime + 0.4);
+  say(loc('creature.arrive'), 3, 'mono');
+  letterbox(true, 0.8);
+  await cineLook(C.x, groundH(C.x, C.z) + 1.7, C.z, 1.3);
+  say(loc('hide.cine'), 3.6, 'mono');
+  const t0 = gt;
+  let sniffed = false;
+  while (C.mode === 'pass' && gt - t0 < 12) {
+    await wait(0);
+    const dt = W._dt || 0.016;
+    let d = Math.atan2(-(C.x - player.x), -(C.z - player.z)) - player.yaw;
+    while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+    player.yaw += d * Math.min(1, dt * 2.2);
+    player.pitch = damp(player.pitch, -0.05, 2, dt);
+    if (AC && !sniffed && Math.hypot(C.x - player.x, C.z - player.z) < 7) { sniffed = true; rasp(AC.currentTime); }
+  }
+  /* it keeps walking away, still blind to the player, and dissolves once the fog has it */
+  const ax = C.x - player.x, az = C.z - player.z, ad = Math.hypot(ax, az) || 1;
+  C.mode = 'pass'; C.tx = clamp(player.x + ax / ad * 40, -46, 46); C.tz = clamp(player.z + az / ad * 40, -280, -118);
+  await wait(0.6);
+  W.forceHide = false;
+  say(loc('hide.learn'), 4, 'mono');
+  letterbox(false, 0.8);
+  player.canMove = true;
+  W.hideLesson = false;
+  setTimeout(() => promptFor(loc('hide.prompt'), 7), 1500);
+  const t1 = gt;
+  while (C.mode === 'pass' && gt - t1 < 10 && Math.hypot(C.x - player.x, C.z - player.z) < 22) await wait(0.1);
+  C.gone = true; C.goneT = 999; C.mode = 'patrol';
+  D.phase = 'relax'; D.t = 0;
+}
 function relocateCreatureFar() {
   let best = null;
   for (let i = 0; i < 20; i++) {
@@ -3135,7 +3303,7 @@ function updateCreature(dt) {
     animateCreature(dt, 0); return;
   }
   W.danger = 1 - smooth(6, 30, d);
-  if (refuge && d < 34 && !busy && !C.jump) {
+  if (refuge && d < 34 && !busy && !C.jump && C.mode !== 'pass') {
     C.gone = true; C.goneT = 999;
     if (D.phase === 'build' || D.phase === 'peak') toPhase('fade');
     if (C.mode === 'hunt' && AC) { sting(AC.currentTime, 0.25); rasp(AC.currentTime); }
@@ -3143,7 +3311,7 @@ function updateCreature(dt) {
   }
   if (C.freeze || busy && !W.inBooth) { animateCreature(dt, 0); return; }
   let detect = false;
-  if (!W.inBooth) {
+  if (!W.inBooth && C.mode !== 'pass') {
     const stalking = C.mode === 'stalk';
     let da = Math.atan2(dx, dz) - C.yaw; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
     const r = heart.hidden ? (stalking ? 3.5 : 6) : (stalking ? 10 : 26);
@@ -3181,6 +3349,10 @@ function updateCreature(dt) {
       if (C.timer <= 0) { C.mode = 'patrol'; C.introDone = true; pickWaypoint(); }
       break;
     }
+    case 'pass':
+      sp = 1.9;
+      if (Math.hypot(C.tx - C.x, C.tz - C.z) < 1.5) { C.mode = 'patrol'; pickWaypoint(); }
+      break;
     case 'search':
       sp = C.listenT > 0 ? 0 : 1.8; C.timer -= dt; C.listenT -= dt;
       if (Math.hypot(C.tx - C.x, C.tz - C.z) < 1.5) { C.tx = C.lastX + mr(-8, 8); C.tz = C.lastZ + mr(-8, 8); C.listenT = mr(1.5, 3); }
@@ -3717,22 +3889,27 @@ function updateTristesse(dt) {
     const b0 = booths[0];
     if (Math.hypot(player.x - b0.x, player.z - b0.z) < 15 || gt - W.introStart > 50) {
       C.introduced = true;
-      const ax = b0.x - player.x, az = b0.z - player.z, ad = Math.hypot(ax, az) || 1;
-      const ang = Math.atan2(ax / ad, az / ad) + 0.6;
-      C.x = clamp(b0.x + Math.sin(ang) * 24, -46, 46); C.z = clamp(b0.z + Math.cos(ang) * 24, -280, -118);
-      C.active = true; C.mode = 'hunt'; C.lastX = player.x; C.lastZ = player.z; C.timer = 8;
-      C.huntSpeed = 2.4;
-      toPhase('peak'); D.intensity = 0.5;
-      rasp(AC.currentTime + 1.2);
-      say(loc('creature.arrive'), 3.6, 'mono');
-      setTimeout(() => promptFor(loc('flare.prompt'), 7), 3200);
-      setTimeout(() => promptFor(loc('hide.prompt'), 7), 11000);
+      hideLesson();
     }
   }
-  if (C.introduced && C.mode === 'patrol' && C.huntSpeed < 4) { C.huntSpeed = 4.0; C.introDone = true; }
+  /* the first real hunt after the lesson teaches the flare and runs slow; the hunts after it run at full speed */
+  if (C.introduced && !W.hideLesson && C.mode === 'hunt' && !W.huntedOnce) {
+    W.huntedOnce = true;
+    setTimeout(() => promptFor(loc('flare.prompt'), 7), 900);
+  }
+  if (W.huntedOnce && C.mode !== 'hunt' && C.huntSpeed < 4) { C.huntSpeed = 4.0; C.introDone = true; }
 
-  const wantHide = (mouseRight || down('KeyF')) && W.heartOwned && !W.forceShow;
+  const wantHide = ((mouseRight || down('KeyF')) && W.heartOwned && !W.forceShow) || !!W.forceHide;
+  if (wantHide && !heart.hidden && !W.forceHide) W.heartHideTimes++;
   heart.hidden = wantHide;
+  /* until the player has clutched the heart on their own, a close threat that hiding can fool brings the reflex back to mind */
+  const hideWorks = !C.aggressive && C.mode !== 'hunt';
+  if (!W.hideLesson && C.introduced && W.heartHideTimes === 0 && hideWorks && (W.danger > 0.55 || SW.fear > 0.6) && !busy && !W.inBooth
+      && gt > (W.hideHintNext || 0) && (W.hideHints || 0) < 3) {
+    W.hideHints = (W.hideHints || 0) + 1; W.hideHintNext = gt + 35;
+    say(loc('hide.urge'), 2.6, 'mono');
+    promptFor(loc('hide.prompt'), 5);
+  }
   updateApparitions(dt);
   H.muffled = wantHide || !!W.inBooth;
 
@@ -3935,6 +4112,7 @@ function updateAudio(dt) {
 }
 
 function updateWorld(dt) {
+  if (STR.on || STR.list.some(s => s.op > 0.01)) updateStrollers(dt);
   if ((state === 'deni' || state === 'intro') && W.wagonMoving) {
     wagon.position.z = Math.min(8, wagon.position.z + 0.22 * dt);
     player.x = 0; player.z = wagon.position.z + 0.4;
@@ -4158,7 +4336,7 @@ function initTouch() {
   const upd = () => { $('rotate').hidden = !rot.matches; };
   rot.addEventListener?.('change', upd); upd();
   $('note').textContent = 'Joue à l’horizontale, casque recommandé. Environ 15 minutes.';
-  document.querySelector('#title .keys').innerHTML = '<dt>Stick gauche</dt><dd>marcher, à fond pour courir</dd><dt>Glisser à droite</dt><dd>regarder</dd><dt>Agir</dt><dd>se lever, ramasser, rallumer (maintenu)</dd><dt>Éclat</dt><dd>repousse le monstre</dd><dt>Cacher</dt><dd>serrer le cœur contre soi (maintenu)</dd><dt>Regarder</dt><dd>tourner la tête vers ce qui apparaît</dd>';
+  document.querySelector('#title .keys').innerHTML = '<dt>Stick gauche</dt><dd>marcher, à fond pour courir</dd><dt>Glisser à droite</dt><dd>regarder</dd><dt>Agir</dt><dd>se lever, ramasser, rallumer (maintenu)</dd><dt>Éclat</dt><dd>repousse le monstre</dd><dt>Serrer</dt><dd>serrer le cœur contre soi, les monstres ne te voient plus (maintenu)</dd><dt>Regarder</dt><dd>tourner la tête vers ce qui apparaît</dd>';
 }
 function updateTouchUI() {
   if (!TOUCH) return;
@@ -4176,6 +4354,7 @@ function updateTouchUI() {
   show('tAct', actNeeded || keys.has('KeyE') && state === 'tristesseIntro', 'KeyE');
   show('tFlare', own && player.canMove, 'KeyR');
   show('tHide', own && player.canMove, 'KeyF');
+  $('tHide').classList.toggle('urge', own && player.canMove && !heart.hidden && !C.aggressive && C.mode !== 'hunt' && (W.danger > 0.5 || SW.fear > 0.6));
   show('tLook', !!W.poi && player.canLook, 'KeyV');
   $('tFlare').style.setProperty('--p', (own && D.flareCd > 0 ? 1 - D.flareCd / (D.flareMax || 12) : 1).toFixed(3));
   $('touch').classList.toggle('dim', !started || ended);
@@ -4239,7 +4418,7 @@ $('start').addEventListener('click', async () => {
 });
 $('again').addEventListener('click', () => location.reload());
 
-window.__rh = { STATION, handcar, CFG, WX, RUN_SEED, openMap, frame: t => frame(t), huts, oddities, ODD, girl, SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
+window.__rh = { STATION, handcar, CFG, WX, RUN_SEED, openMap, frame: t => frame(t), huts, oddities, ODD, girl, SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, STR, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
 </script>
 
 </body>
