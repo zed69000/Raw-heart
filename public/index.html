@@ -2503,9 +2503,10 @@ function updateBeam(g, dt) {
   g.scan += dt; g.cool -= dt;
   if (g.lock) { g.bx = damp(g.bx, player.x, 5, dt); g.bz = damp(g.bz, player.z, 5, dt); }
   else {
-    const a = toPa + Math.sin(g.scan * 0.2 + g.seed) * 0.5 + Math.sin(g.scan * 0.07 + g.seed * 2) * 0.25;
-    const r = clamp(toPd + Math.sin(g.scan * 0.13 + g.seed) * 12, 14, 150);
-    const tx = g.x + Math.sin(a) * r, tz = g.z + Math.cos(a) * r;
+    /* a wide, roaming search: long arcs across the forest that only now and then cross the player's area */
+    const a = toPa + Math.sin(g.scan * 0.12 + g.seed) * 0.95 + Math.sin(g.scan * 0.047 + g.seed * 2) * 0.35;
+    const r = clamp(lerp(30, toPd + 35, 0.5 + 0.5 * Math.sin(g.scan * 0.09 + g.seed * 3)), 20, 160);
+    const tx = clamp(g.x + Math.sin(a) * r, bounds.x0 + 3, bounds.x1 - 3), tz = clamp(g.z + Math.cos(a) * r, bounds.z0 + 3, bounds.z1 - 3);
     if (g.scan < dt * 1.5) { g.bx = tx; g.bz = tz; }
     g.bx = damp(g.bx, tx, 1.2, dt); g.bz = damp(g.bz, tz, 1.2, dt);
   }
@@ -2517,11 +2518,13 @@ function updateBeam(g, dt) {
   g.beam.position.copy(_beamEye); g.beam.quaternion.setFromUnitVectors(_beamDown, _beamDir); g.beam.scale.set(g.br, L, g.br);
   g.foot.position.set(g.bx, fy, g.bz); g.foot.scale.set(g.br, 1, g.br);
   g.eye.position.copy(_beamEye);
-  const red = g.lock ? 1 : smooth(0, 0.9, g.seen);
-  g.beam.material.uniforms.uCol.value.setRGB(0.91, lerp(0.89, 0.35, red), lerp(0.81, 0.3, red));
-  g.foot.material.uniforms.uCol.value.setRGB(0.94, lerp(0.91, 0.4, red), lerp(0.82, 0.35, red));
-  g.beam.material.uniforms.uOp.value = 0.35 * g.bk;
-  g.foot.material.uniforms.uOp.value = 0.85 * g.bk;
+  /* a monster's light: dull blood red while searching, hotter and brighter once it has found the player */
+  const hot = g.lock ? 1 : smooth(0, 0.9, g.seen);
+  g.beam.material.uniforms.uCol.value.setRGB(lerp(0.78, 1, hot), lerp(0.16, 0.3, hot), lerp(0.1, 0.12, hot));
+  g.foot.material.uniforms.uCol.value.setRGB(lerp(0.85, 1, hot), lerp(0.22, 0.34, hot), lerp(0.14, 0.14, hot));
+  g.eye.material.color.setRGB(1, lerp(0.35, 0.5, hot), 0.25);
+  g.beam.material.uniforms.uOp.value = lerp(0.35, 0.55, hot) * g.bk;
+  g.foot.material.uniforms.uOp.value = lerp(0.85, 1.15, hot) * g.bk;
   g.eye.material.opacity = g.bk;
   g.beam.visible = g.foot.visible = g.eye.visible = g.bk > 0.01;
   g.maskT -= dt;
@@ -2571,9 +2574,11 @@ function updateGiants(dt) {
     g.phase += sp * dt / (0.9 * g.scale) * Math.PI;
     const turning = (g.look > 0 && !g.looked || g.lock) && sp === 0;
     poseHumanoid(g.h, g.phase, sp > 0 ? 1 : 0, turning ? 0.25 : Math.sin(g.phase * 0.5) * 0.08);
-    let faceYaw = g.yaw;
-    if (turning) faceYaw = Math.atan2(player.x - g.x, player.z - g.z);
-    g.h.gp.rotation.y = damp(g.h.gp.rotation.y, faceYaw, 0.6, dt);
+    /* body and head follow the searchlight, so the giant always faces where it looks */
+    const faceYaw = Math.atan2(g.bx - g.x, g.bz - g.z);
+    let dyaw = faceYaw - g.h.gp.rotation.y; while (dyaw > Math.PI) dyaw -= 2 * Math.PI; while (dyaw < -Math.PI) dyaw += 2 * Math.PI;
+    g.h.gp.rotation.y += dyaw * Math.min(1, dt * (g.lock ? 2.5 : 1.2));
+    g.h.head.rotation.x = 0.15 + 0.9 * Math.atan2(2.9 * g.scale, Math.hypot(g.bx - g.x, g.bz - g.z) + 1);
     g.h.gp.position.set(g.x, groundH(g.x, g.z) - 0.3, g.z);
     g.lantern.material.opacity = 0.7 + 0.15 * Math.sin(gt * 3 + g.x);
     setEyes(g.h, turning ? 1 : 0.6);
