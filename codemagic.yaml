@@ -44,6 +44,8 @@ workflows:
           npx cap sync android
       - name: Build the APK
         script: |
+          # same debug key on every build, so a new APK installs over the previous one
+          mkdir -p ~/.android && cp native/debug.keystore ~/.android/debug.keystore
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
