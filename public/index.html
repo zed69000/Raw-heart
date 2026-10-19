@@ -95,9 +95,6 @@ html.splash #splash{position:fixed;inset:0;z-index:30;display:block;background:v
 @keyframes spGrow{from{transform:scale(.6,0);opacity:0}to{transform:none;opacity:1}}
 @keyframes spPop{from{transform:scale(1.6);opacity:0}to{transform:none;opacity:1}}
 @keyframes spOut{to{opacity:0;visibility:hidden}}
-#life{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:calc(16px + env(safe-area-inset-left,0px));width:26px;height:24px;opacity:0;transition:opacity .8s;pointer-events:none;z-index:3}
-#life svg{width:100%;height:100%;overflow:visible}#life path{fill:#a3170f;stroke:#e6dcc8;stroke-width:1.4;transition:fill .3s}
-#life.hit path{fill:#f4efe4}
 #map{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;background:rgba(4,4,4,.82);z-index:7}
 #mapc{max-width:92vw;max-height:80vh;height:auto;width:auto;box-shadow:0 0 0 1px #1d1712}
 #mapnote{margin:0;font-size:.72rem;letter-spacing:.08em;color:var(--ash);text-align:center;max-width:60ch}
@@ -159,7 +156,6 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
 </style>
 
 <canvas id="c"></canvas>
-<div id="life" aria-hidden="true"><svg viewBox="0 0 32 30"><path d="M16 28C6 20 1 14 1 8.5 1 4 4.5 1 8.5 1 12 1 14.5 3.5 16 6 17.5 3.5 20 1 23.5 1 27.5 1 31 4 31 8.5 31 14 26 20 16 28Z"/></svg></div>
 <div id="map" hidden><canvas id="mapc" width="520" height="640"></canvas><p id="mapnote"></p></div>
 <div class="lb" id="lbT"></div><div class="lb" id="lbB"></div>
 <div id="subs"></div>
@@ -266,6 +262,7 @@ const mr = (a, b) => a + (b - a) * Math.random();
 /* tunables: look, stamina, noise, monsters */
 const CFG = {
   lookSens: 0.0022, lookAccel: 1.6, touchLook: 3.0,
+  beamShadow: 4.5, beamPad: 0.2,
   walkSpeed: 3.2, runSpeed: 5.8, staminaRun: 5, staminaRegenWalk: 9, staminaRegenRest: 4.5, staminaRecover: 0.4,
   noiseRun: 16, noiseWalk: 7, noiseHidden: 3, mouthMax: 2.2, sightStep: 1.5,
 };
@@ -277,7 +274,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
 /* ---------- languages ---------- */
 /* Texts come from the "Raw Heart — Textes du jeu" doc (one tab per language), keyed by the doc's IDs. */
-const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lumière, et elle s’éclaire quand je suis sur le bon chemin.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","hide.cine":"Mes mains serrent le cœur contre moi. Sa lumière s’étouffe.","hide.learn":"Il ne m’a pas vu. Serré contre moi, le cœur ne les attire plus.","hide.urge":"Le serrer contre moi. Vite.","shadows.1":"Des silhouettes, dans la brume. Elles marchent sans moi.","shadows.2":"Celle-là s’est arrêtée. Elle me regarde.","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Serrer","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the light, and it glows when I’m on the right path.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","hide.cine":"My hands press the heart against me. Its light chokes.","hide.learn":"It didn’t see me. Held close, the heart no longer draws them.","hide.urge":"Hold it close. Now.","shadows.1":"Figures, in the mist. They walk on without me.","shadows.2":"That one stopped. It’s looking at me.","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Clutch","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
+const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lumière, et elle s’éclaire quand je suis sur le bon chemin.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","hide.cine":"Mes mains serrent le cœur contre moi. Sa lumière s’étouffe.","hide.learn":"Il ne m’a pas vu. Serré contre moi, le cœur ne les attire plus.","hide.urge":"Le serrer contre moi. Vite.","giant.beam":"Sa lumière fouille la forêt. Rester dans l’ombre des arbres, des cabines.","giant.spotted":"Sa lumière m’a trouvé. Ils arrivent. Tous.","shadows.1":"Des silhouettes, dans la brume. Elles marchent sans moi.","shadows.2":"Celle-là s’est arrêtée. Elle me regarde.","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Serrer","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the light, and it glows when I’m on the right path.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","hide.cine":"My hands press the heart against me. Its light chokes.","hide.learn":"It didn’t see me. Held close, the heart no longer draws them.","hide.urge":"Hold it close. Now.","giant.beam":"Its light is searching the forest. Stay in the shadow of the trees, the booths.","giant.spotted":"Its light found me. They’re coming. All of them.","shadows.1":"Figures, in the mist. They walk on without me.","shadows.2":"That one stopped. It’s looking at me.","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Clutch","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
 const LANGS = [['fr', 'Français'], ['en', 'English']];
 const VLANG = { fr: 'fr-FR', en: 'en-US', de: 'de-DE', es: 'es-ES', it: 'it-IT', pt: 'pt-BR', pl: 'pl-PL', ru: 'ru-RU', ja: 'ja-JP', ko: 'ko-KR', zh: 'zh-CN', tr: 'tr-TR' };
 let LANG = (() => {
@@ -2033,20 +2030,21 @@ const teethGeo = new THREE.PlaneGeometry(0.9, 1).translate(0, -0.5, 0);
 function makeGhost(kind, mat = M.creature) {
   const gp = new THREE.Group(), body = new THREE.Group(); gp.add(body);
   let eyeY, eyeZ, eyeX, eyeR, eyeOX = 0, mw, mh, my, mz, legs = null;
+  const arms = [];
   if (kind === 'tall') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.5, 0], [0.47, 0.6], [0.43, 1.6], [0.42, 2.3], [0.38, 2.6], [0.28, 2.85], [0.12, 2.98], [0, 3.0]]), 0.3, 0.25), mat));
     eyeY = 2.62; eyeZ = 0.37; eyeX = 0.12; eyeR = 0.045; mw = 0.3; mh = 0.4; my = 2.5; mz = 0.4;
   } else if (kind === 'blob') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.52, 0], [0.46, 0.5], [0.38, 1.2], [0.33, 1.65], [0.3, 1.95], [0.18, 2.22], [0.04, 2.36], [0, 2.38]]), 0.35, 0.3), mat));
     const hood = new THREE.Mesh(new THREE.SphereGeometry(0.27, 14, 10), mat); hood.scale.set(1, 1.25, 1.05); hood.position.set(0, 2.0, 0.06); hood.rotation.x = 0.35; body.add(hood);
-    for (const sx of [-1, 1]) { const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.09, 1.55, 6).translate(0, -0.78, 0), mat); arm.position.set(sx * 0.3, 1.8, 0.08); arm.rotation.set(-0.12, 0, sx * 0.1); body.add(arm); }
+    for (const sx of [-1, 1]) { const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.09, 1.55, 6).translate(0, -0.78, 0), mat); arm.position.set(sx * 0.3, 1.8, 0.08); arm.rotation.set(-0.12, 0, sx * 0.1); body.add(arm); arms.push(arm); }
     eyeY = 2.02; eyeZ = 0.37; eyeX = 0.1; eyeR = 0.045; mw = 0.24; mh = 0.3; my = 1.9; mz = 0.36;
   } else if (kind === 'echo') {
     body.add(new THREE.Mesh(raggedHem(ghostLathe([[0.34, 0], [0.31, 0.8], [0.27, 1.7], [0.24, 2.4], [0.2, 2.7], [0.08, 2.85], [0, 2.9]]), 0.3, 0.3), mat));
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 12), mat); head.scale.set(1, 1.25, 0.95); head.position.set(0.12, 2.95, 0.04); head.rotation.z = -0.5; body.add(head);
     for (const sx of [-1, 1]) {
       const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.11, 1.9, 8).translate(0, -0.95, 0), mat);
-      arm.position.set(sx * 0.24, 2.5, 0); arm.rotation.z = sx * 0.12; body.add(arm);
+      arm.position.set(sx * 0.24, 2.5, 0); arm.rotation.z = sx * 0.12; body.add(arm); arms.push(arm);
     }
     eyeY = 3.02; eyeZ = 0.24; eyeX = 0.08; eyeR = 0.04; eyeOX = 0.13; mw = 0.15; mh = 0.3; my = 2.9; mz = 0.27;
   } else {
@@ -2072,7 +2070,7 @@ function makeGhost(kind, mat = M.creature) {
   const teeth = new THREE.Mesh(teethGeo, teethMat); teeth.position.z = -0.006; mouth.add(teeth);
   mouth.add(new THREE.Mesh(mouthGeo, mouthMat));
   gp.visible = false; scene.add(gp);
-  return { gp, body, head: body, eyes, glows, kind, eyeY, mouth, mouthH: mh, mouthW: mw, mat, legs, tw: 0, twz: 0 };
+  return { gp, body, head: body, eyes, glows, kind, eyeY, mouth, mouthH: mh, mouthW: mw, mat, legs, arms, tw: 0, twz: 0 };
 }
 /* Eyes and mouth tell the state: half-closed slits while wandering, wide open with the mouth torn open once it has found you. */
 function setFace(h, eye, mouth) {
@@ -2084,15 +2082,25 @@ function setFace(h, eye, mouth) {
   h.mouth.scale.y = h.mouthH * Math.max(0.05, mouth);
   h.mouth.scale.x = h.mouthW * Math.max(1, 0.55 + 0.45 * mouth);
 }
-/* hover, sway and breathe; a lunge tips the body forward and the hem drops to slide along the ground */
+/* hover, sway and breathe; a lunge tips the body far forward, the hem drops to slide along the ground,
+   the arms rise to reach for you and the whole figure jerks in broken, stop-motion spasms */
 function ghostPose(h, ph, moving, tilt, lunge = false) {
-  const t = gt;
+  const t = gt, dt = W._dt || 0.016;
   h.body.position.y = h.kind === 'crawler' ? 0 : lunge ? 0.03 : 0.12 + Math.sin(t * 2.1 + ph) * 0.08;
   h.body.rotation.z = lunge ? 0 : Math.sin(t * 1.3 + ph) * 0.06 + tilt * 0.25;
-  h.body.rotation.x = lunge ? 0.35 : (moving ? 0.12 : 0);
+  h.body.rotation.x = lunge ? 0.55 + Math.sin(t * 9 + ph) * 0.08 : (moving ? 0.12 : 0);
+  h.body.rotation.y = 0;
   const br = 1 + Math.sin(t * (lunge ? 7 : 3) + ph) * 0.04;
   h.body.scale.set(br, (1 / br) * (lunge && h.kind !== 'crawler' ? 0.92 : 1), br * (lunge ? 1.12 : 1));
-  if (lunge) { h.tw -= W._dt || 0.016; if (h.tw <= 0) { h.tw = mr(0.08, 0.22); h.twz = mr(-0.35, 0.35); } h.body.rotation.z += h.twz; }
+  if (lunge) {
+    h.tw -= dt;
+    if (h.tw <= 0) { h.tw = mr(0.06, 0.18); h.twz = mr(-0.4, 0.4); h.twy = mr(-0.35, 0.35); }
+    h.body.rotation.z += h.twz; h.body.rotation.y += h.twy || 0;
+  }
+  h.arms.forEach((a, i) => {
+    const want = lunge ? -1.35 + Math.sin(t * 21 + i * 2.3 + ph) * 0.18 : -0.12 + Math.sin(t * 1.1 + i + ph) * 0.05;
+    a.rotation.x = damp(a.rotation.x, want, lunge ? 10 : 3, dt);
+  });
   if (h.legs) h.legs.forEach((g, i) => { g.rotation.z = Math.sin(t * (lunge ? 14 : 4) + ph + i * 2.1) * (lunge ? 0.35 : 0.12); });
 }
 
@@ -2415,9 +2423,120 @@ function makeGiant() {
   const lantern = glowSprite(0.9, 0xf0dcb0, 0.95); lantern.position.set(-0.46, 0.38, 0.5); h.gp.add(lantern);
   const core = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.05), new THREE.MeshBasicMaterial({ color: 0xf4e6c4, fog: false })); core.position.copy(lantern.position); h.gp.add(core);
   h.gp.visible = false;
-  return { h, scale, lantern, x: 0, z: 0, yaw: 0, speed: 1.2, phase: 0, active: false, lastStep: 0, look: 0, looked: false, travelled: 0, len: 170, op: 0 };
+  /* the searchlight: a cone from the head down to a pool of light whose shadow mask is cast by trunks, booths and huts */
+  const beam = new THREE.Mesh(new THREE.ConeGeometry(1, 1, 28, 1, true).translate(0, -0.5, 0), shaftMat(0xe8e2cf, 0, 0));
+  beam.frustumCulled = false; beam.visible = false; scene.add(beam);
+  const mask = new Uint8Array(BEAM_N * BEAM_N).fill(255);
+  const maskTex = new THREE.DataTexture(mask, BEAM_N, BEAM_N, THREE.RedFormat);
+  maskTex.magFilter = maskTex.minFilter = THREE.LinearFilter; maskTex.needsUpdate = true;
+  const footMat = new THREE.ShaderMaterial({
+    uniforms: { uMask: { value: maskTex }, uOp: { value: 0 }, uCol: { value: new THREE.Color(0xf0e8d2) } },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform sampler2D uMask; uniform float uOp; uniform vec3 uCol; varying vec2 vUv;
+      void main(){ float r = length(vUv - 0.5) * 2.0; float fall = 1.0 - smoothstep(0.6, 1.0, r);
+        gl_FragColor = vec4(uCol * fall * texture2D(uMask, vUv).r * uOp, 1.0); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8
+  });
+  const foot = new THREE.Mesh(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), footMat);
+  foot.frustumCulled = false; foot.visible = false; scene.add(foot);
+  const eye = glowSprite(7, 0xfff0d0, 0); eye.visible = false; scene.add(eye);
+  return { h, scale, lantern, x: 0, z: 0, yaw: 0, speed: 1.2, phase: 0, active: false, lastStep: 0, look: 0, looked: false, travelled: 0, len: 170, op: 0,
+    beam, foot, eye, mask, maskTex, bx: 0, bz: 0, br: 5, bk: 0, scan: 0, seed: 0, lock: false, seen: 0, lost: 0, cool: 0, maskT: 0 };
 }
+const BEAM_N = 24;
 const giants = [makeGiant(), makeGiant()];
+/* Seen from high up, anything solid between a spot and the giant shades it: trunks, huts, booths.
+   The same test drives the visible shadows in the pool of light and whether the giant can see the player. */
+function beamShadowed(x, z, gx, gz) {
+  const dx = gx - x, dz = gz - z, d = Math.hypot(dx, dz) || 1, ux = dx / d, uz = dz / d;
+  for (let s2 = 0; s2 < CFG.beamShadow; s2 += 0.4) {
+    const px = x + ux * s2, pz = z + uz * s2;
+    let hit = false;
+    forNear(px, pz, c => { if (!hit && c.r > 0.2 && (px - c.x) ** 2 + (pz - c.z) ** 2 < (c.r + CFG.beamPad) ** 2) hit = true; });
+    if (hit || inHut(px, pz, 0)) return true;
+    for (const b of booths) if ((px - b.x) ** 2 + (pz - b.z) ** 2 < 0.65) return true;
+  }
+  return false;
+}
+function updateBeamMask(g) {
+  const N = BEAM_N, R = g.br;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const u = (i + 0.5) / N * 2 - 1, v = (j + 0.5) / N * 2 - 1;
+    g.mask[j * N + i] = u * u + v * v > 1 ? 0 : beamShadowed(g.bx + u * R, g.bz - v * R, g.x, g.z) ? 0 : 255;
+  }
+  g.maskTex.needsUpdate = true;
+}
+/* a war-of-the-worlds horn from the giant once its light has found the player */
+function giantHorn(x, z) {
+  if (!AC) return;
+  const t = AC.currentTime, pn = panner(40); placePanner(pn, x, 30, z); pn.connect(S.world); pn.connect(g(0.9, S.rev));
+  const lp = biq('lowpass', 160, 2), out = g(0); lp.connect(out); out.connect(pn);
+  out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.55, t + 0.35);
+  out.gain.setValueAtTime(0.55, t + 2.2); out.gain.exponentialRampToValueAtTime(0.0001, t + 4);
+  lp.frequency.setValueAtTime(160, t); lp.frequency.exponentialRampToValueAtTime(1400, t + 0.6); lp.frequency.exponentialRampToValueAtTime(380, t + 3.6);
+  for (const f of [43.65, 44.3, 65.4, 87.3]) { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(t); o.stop(t + 4.2); }
+  setTimeout(() => pn.disconnect(), 5000);
+}
+/* spotted by a giant: every monster in the forest comes for the player */
+function giantAlarm() {
+  if (C.introduced && !W.hideLesson) {
+    if (!C.active || C.gone) toPhase('build');
+    toPhase('peak');
+  }
+  for (const e of SWARM) if (e.active && !e.dying && e.kind !== 'echo') { e.st = 'chase'; e.t = 0; e.lost = 0; e.lastX = player.x; e.lastZ = player.z; }
+  for (let i = 0; i < 2; i++) spawnEnemy('blob');
+  W.danger = 1;
+}
+function updateBeam(g, dt) {
+  const play = (state === 'tristesse' || state === 'final') && !W.done2;
+  g.bk = damp(g.bk, play && g.travelled > 6 ? 1 : 0, 0.8, dt);
+  const toPa = Math.atan2(player.x - g.x, player.z - g.z), toPd = Math.hypot(player.x - g.x, player.z - g.z);
+  g.scan += dt; g.cool -= dt;
+  if (g.lock) { g.bx = damp(g.bx, player.x, 5, dt); g.bz = damp(g.bz, player.z, 5, dt); }
+  else {
+    const a = toPa + Math.sin(g.scan * 0.2 + g.seed) * 0.5 + Math.sin(g.scan * 0.07 + g.seed * 2) * 0.25;
+    const r = clamp(toPd + Math.sin(g.scan * 0.13 + g.seed) * 12, 14, 150);
+    const tx = g.x + Math.sin(a) * r, tz = g.z + Math.cos(a) * r;
+    if (g.scan < dt * 1.5) { g.bx = tx; g.bz = tz; }
+    g.bx = damp(g.bx, tx, 1.2, dt); g.bz = damp(g.bz, tz, 1.2, dt);
+  }
+  g.br = 4.5 + 0.025 * Math.hypot(g.bx - g.x, g.bz - g.z);
+  const fy = groundH(g.bx, g.bz) + 0.08;
+  g.h.head.getWorldPosition(_beamEye);
+  _beamDir.set(g.bx - _beamEye.x, fy - _beamEye.y, g.bz - _beamEye.z);
+  const L = _beamDir.length(); _beamDir.divideScalar(L || 1);
+  g.beam.position.copy(_beamEye); g.beam.quaternion.setFromUnitVectors(_beamDown, _beamDir); g.beam.scale.set(g.br, L, g.br);
+  g.foot.position.set(g.bx, fy, g.bz); g.foot.scale.set(g.br, 1, g.br);
+  g.eye.position.copy(_beamEye);
+  const red = g.lock ? 1 : smooth(0, 0.9, g.seen);
+  g.beam.material.uniforms.uCol.value.setRGB(0.91, lerp(0.89, 0.35, red), lerp(0.81, 0.3, red));
+  g.foot.material.uniforms.uCol.value.setRGB(0.94, lerp(0.91, 0.4, red), lerp(0.82, 0.35, red));
+  g.beam.material.uniforms.uOp.value = 0.2 * g.bk;
+  g.foot.material.uniforms.uOp.value = 0.85 * g.bk;
+  g.eye.material.opacity = g.bk;
+  g.beam.visible = g.foot.visible = g.eye.visible = g.bk > 0.01;
+  g.maskT -= dt;
+  if (g.maskT <= 0 && g.bk > 0.01) { g.maskT = 0.12; updateBeamMask(g); }
+  /* the light only sees what it touches: standing in its pool, in plain sight, for a moment */
+  const inPool = Math.hypot(player.x - g.bx, player.z - g.bz) < g.br * 0.8;
+  const lit = play && g.bk > 0.8 && inPool && !busy && !W.memory && !W.inBooth && !W.inShelter && !beamShadowed(player.x, player.z, g.x, g.z);
+  W.giantLit = Math.max(W.giantLit || 0, lit ? 1 : 0);
+  if (!g.lock) {
+    g.seen = lit ? g.seen + dt : Math.max(0, g.seen - dt * 2);
+    if (g.seen > 0.9 && g.cool <= 0) {
+      g.lock = true; g.lost = 0;
+      giantHorn(g.x, g.z);
+      say(loc('giant.spotted'), 3.6, 'mono');
+      P.uFlashColor.value.setRGB(0.5, 0.05, 0.03); fx.flash = 0.4; tween(fx, 'flash', 0, 1);
+      giantAlarm();
+    }
+  } else {
+    g.lost = lit ? 0 : g.lost + dt;
+    for (const e of SWARM) if (e.active && !e.dying && e.st === 'chase') { e.lost = 0; e.lastX = player.x; e.lastZ = player.z; }
+    if (g.lost > 2.5 || !play) { g.lock = false; g.seen = 0; g.cool = 8; }
+  }
+}
+const _beamEye = new THREE.Vector3(), _beamDir = new THREE.Vector3(), _beamDown = new THREE.Vector3(0, -1, 0);
 const GI = { next: 0, waves: 0, finalDone: false };
 function launchGiant(g, { side = 1, ahead = 45, lateral = 75, speed = 1.2, len = 170, look = false, z = null } = {}) {
   const fx2 = -Math.sin(player.yaw), fz2 = -Math.cos(player.yaw);
@@ -2426,18 +2545,22 @@ function launchGiant(g, { side = 1, ahead = 45, lateral = 75, speed = 1.2, len =
   g.x = cx - rx2 * lateral * side; g.z = cz - rz2 * lateral * side;
   g.yaw = Math.atan2(rx2 * side, rz2 * side);
   g.speed = speed; g.len = len; g.travelled = 0; g.active = true; g.look = look ? 1 : 0; g.looked = false; g.op = 0;
+  g.bk = 0; g.scan = 0; g.seed = mr(0, 6.28); g.lock = false; g.seen = 0; g.cool = 3;
   g.h.gp.visible = true; setEyes(g.h, 0.8);
   setPoi(() => ({ x: g.x, z: g.z, y: groundH(g.x, g.z) + 2.9 * g.scale }), 14);
 }
 function updateGiants(dt) {
+  W.giantLit = 0;
   for (const g of giants) {
-    if (!g.active) continue;
+    if (!g.active) { if (g.beam.visible) { g.beam.visible = g.foot.visible = g.eye.visible = false; g.lock = false; g.bk = 0; } continue; }
     const toP = Math.hypot(player.x - g.x, player.z - g.z);
     let sp = g.speed;
     if (g.look && !g.looked && toP < 70) { g.look -= dt / 7; sp = 0; if (g.look <= 0) g.looked = true; }
+    if (g.lock) sp = 0;
+    updateBeam(g, dt);
     g.x += Math.sin(g.yaw) * sp * dt; g.z += Math.cos(g.yaw) * sp * dt; g.travelled += sp * dt;
     g.phase += sp * dt / (0.9 * g.scale) * Math.PI;
-    const turning = g.look > 0 && !g.looked && sp === 0;
+    const turning = (g.look > 0 && !g.looked || g.lock) && sp === 0;
     poseHumanoid(g.h, g.phase, sp > 0 ? 1 : 0, turning ? 0.25 : Math.sin(g.phase * 0.5) * 0.08);
     let faceYaw = g.yaw;
     if (turning) faceYaw = Math.atan2(player.x - g.x, player.z - g.z);
@@ -2474,9 +2597,9 @@ function scheduleGiants() {
   launchGiant(giants[0], { side: Math.random() < 0.5 ? 1 : -1, ahead: second ? 40 : 60, look: second });
   if (second) setTimeout(() => { if (!giants[1].active) launchGiant(giants[1], { side: -1, ahead: 95, lateral: 110, speed: 0.9, len: 220 }); }, 9000);
   if (GI.waves <= 2) setTimeout(() => { const g = giants[0]; if (g.active && !busy) cineLook(g.x, groundH(g.x, g.z) + 2.6 * g.scale, g.z, 1.8); }, 2500);
-  if (GI.waves === 1) setTimeout(() => say(loc('giants.first'), 4, 'mono'), 6000);
+  if (GI.waves === 1) { setTimeout(() => say(loc('giants.first'), 4, 'mono'), 6000); setTimeout(() => say(loc('giant.beam'), 4.4, 'mono'), 12500); }
   if (second && GI.waves <= 2) setTimeout(() => say(loc('giants.look'), 4.2, 'mono'), 16000);
-  GI.next = gt + mr(80, 110);
+  GI.next = gt + mr(60, 90);
 }
 
 /* Opening nightmare: smoke people wander in the mist around the wagon, some with a suitcase, none heading anywhere.
@@ -3333,6 +3456,14 @@ function updateCreature(dt) {
       break;
     case 'hunt':
       C.tx = C.lastX; C.tz = C.lastZ; sp = C.huntSpeed * (d < 7 ? 1.45 : 1);
+      C.roarT = (C.roarT ?? 0.5) - dt;
+      if (C.roarT <= 0 && AC) { C.roarT = mr(1.4, 2.6); rasp(AC.currentTime); burst(AC.currentTime, { dur: 0.6, amp: 0.4, type: 'lowpass', freq: 220, buf: S.brown, dest: S.cPan }); }
+      C.blinkT = (C.blinkT ?? 2) - dt;
+      if (C.blinkT <= 0 && detect && d > 8) {
+        C.blinkT = mr(2, 3.6);
+        ashBurst(C.x, groundH(C.x, C.z) + 0.3, C.z, 60, 1, 2.6);
+        C.x += dx / d * 2.8; C.z += dz / d * 2.8; C.rx = C.x; C.rz = C.z;
+      }
       if (!detect) { C.timer -= dt; if (C.timer <= 0 || Math.hypot(C.tx - C.x, C.tz - C.z) < 1.5) { C.mode = 'search'; C.timer = 7; C.listenT = 2.5; } }
       break;
     case 'stalk': {
@@ -3623,7 +3754,7 @@ function hitFx(src) {
 }
 function hurt(a, src) {
   SW.fear += a;
-  const lf = $('life'); lf.classList.add('hit'); setTimeout(() => lf.classList.remove('hit'), 380); LIFE.kick = 1;
+  LIFE.kick = 1;
   hitFx(src);
   player.shake = Math.max(player.shake, 0.9); tween(player, 'shake', 0, 0.5);
   P.uFlashColor.value.setRGB(0.45, 0, 0); fx.flash = 0.35; tween(fx, 'flash', 0, 0.6);
@@ -3769,6 +3900,22 @@ function updateSwarm(dt) {
           sp = 4.0 + 0.4 * W.fragIndex;
         } else if (e.kind === 'echo') sp = 4.6;
         else sp = 2.6 + 0.3 * W.fragIndex;
+        /* lurching rushes instead of a steady glide, same average speed */
+        if (e.kind !== 'crawler') sp *= (0.5 + 1.1 * Math.pow(0.5 + 0.5 * Math.sin(gt * 7 + e.phase * 3), 3)) / 0.84;
+        e.snarl = (e.snarl ?? mr(0.3, 1)) - dt;
+        if (e.snarl <= 0 && AC) {
+          e.snarl = mr(0.9, 1.9);
+          placePanner(S.gPan, e.x, 1, e.z);
+          burst(AC.currentTime, { dur: mr(0.25, 0.45), amp: 0.3, freq: e.kind === 'crawler' ? 650 : mr(1100, 1900), Q: 5, dest: S.gPan, attack: 0.01 });
+        }
+        /* in sight and still at a distance, it skips ahead in a smear of ash */
+        e.blink = (e.blink ?? mr(1.5, 3)) - dt;
+        if (e.blink <= 0 && e.lost === 0 && d > 6 && e.kind !== 'crawler') {
+          e.blink = mr(1.6, 3.2);
+          const jump = Math.min(2.4, d - 4);
+          ashBurst(e.x, groundH(e.x, e.z) + 0.3, e.z, 30, 0.6, 1.4);
+          e.x += dx / d * jump; e.z += dz / d * jump;
+        }
         if (e.lost > 0) { faceX = e.lastX - e.x; faceZ = e.lastZ - e.z; }
         if (e.lost > 3 || d > 26) { e.st = 'wander'; e.t = 0; e.hx = e.x; e.hz = e.z; e.tx = e.x; e.tz = e.z; }
       }
@@ -3951,7 +4098,7 @@ function updateTristesse(dt) {
 
   const target = W.memory ? 52 : lerp(64 + 95 * W.danger + 18 * D.build + (D.tele ? 25 : 0) + 45 * SW.fear, 56, W.calm);
   H.bpm = damp(H.bpm, target, 2.5, dt);
-  H.jitter = 0.03 + 0.35 * W.danger;
+  H.jitter = 0.03 + 0.35 * W.danger + 0.3 * SW.fear;
   H.amp = 0.5 + 0.45 * Math.max(W.danger, SW.fear);
   if (!W.finalOn) {
     fx.tunnel = damp(fx.tunnel, (0.06 + 0.35 * W.danger + 0.35 * SW.fear) * (1 - 0.8 * W.calm), 3, dt);
@@ -3964,7 +4111,11 @@ function updateTristesse(dt) {
     W.fogD = lerp(0.085, 0.13, hid) + (W.fogExtra || 0) + 0.06 * fin;
     if (!W.finalOn) W.fogC.copy(TRIS_FOG).lerp(FOG_NIGHT, hid).lerp(CALM_FOG, W.calm * 0.7);
   }
+  /* caught in a giant's light: the mist around turns pale and the heart races */
+  W.beamK = damp(W.beamK || 0, W.giantLit || 0, 4, dt);
+  if (W.beamK > 0.01) { W.fogC.lerp(BEAM_FOG, 0.55 * W.beamK); H.bpm = Math.max(H.bpm, 120 * W.beamK); }
 }
+const BEAM_FOG = new THREE.Color(0x8d877a);
 
 async function finishTristesse() {
   W.done2 = true; busy = true; player.canMove = false;
@@ -4034,17 +4185,23 @@ function updateHeartModel(dt) {
   heart.k = clamp(heart.k, 0, 1);
   const hid = heart.hidden ? 1 : 0;
   heart._h = damp(heart._h ?? 0, hid, 8, dt);
-  const sx = lerp(0.11, 0.03, heart._h), sy = lerp(-0.15, -0.25, heart._h), sz = lerp(-0.42, -0.26, heart._h);
+  /* the heart is the health gauge: as it weakens it darkens, dims, shrinks and is held up into view; a hit makes it spasm */
+  const life = clamp(1 - SW.fear, 0, 1), weak = 1 - life;
+  LIFE.kick = Math.max(0, LIFE.kick - dt * 2.5);
+  const kick = LIFE.kick, show = smooth(0.35, 0.9, weak) * (1 - heart._h);
+  const sx = lerp(lerp(0.11, 0.075, show), 0.03, heart._h), sy = lerp(lerp(-0.15, -0.115, show), -0.25, heart._h), sz = lerp(lerp(-0.42, -0.36, show), -0.26, heart._h);
   const sway = player.moving ? Math.sin(player.bob) * 0.012 : 0;
-  heart.gp.position.set(sx + sway, sy - (1 - heart.k) * 0.3 + Math.abs(sway), sz);
-  heart.gp.rotation.set(0.32 + 0.4 * heart._h, -0.3, 0.06);
-  const s = 1 + (0.09 + 0.12 * (W.danger || 0)) * pulse;
+  const jx = kick * (Math.random() - 0.5) * 0.02, jy = kick * (Math.random() - 0.5) * 0.02;
+  heart.gp.position.set(sx + sway + jx, sy - (1 - heart.k) * 0.3 + Math.abs(sway) + jy + 0.02 * kick, sz);
+  heart.gp.rotation.set(0.32 + 0.4 * heart._h - 0.25 * show, -0.3, 0.06 + kick * 0.3 * Math.sin(gt * 40));
+  const s = (1 + (0.09 + 0.12 * (W.danger || 0)) * pulse * lerp(1, 0.55, weak)) * lerp(1, 0.84, weak) * (1 - 0.22 * kick);
   heart.core.scale.set(s, s * 0.97, s);
   heart.hand.curl(lerp(0.72, 1.2, heart._h) + 0.05 * pulse, 0.04 * (SW.fear + 0.5 * (W.danger || 0)));
   const lightOn = heart.k * (W.memory ? 1.4 : 1);
   const warn = W.danger || 0;
-  heart.light.intensity = heart.base * lightOn * (0.6 + (0.45 + 1.4 * warn) * pulse) * lerp(1, 0.22, heart._h) * (1 + 7 * D.flareT) * (D.flareCd > 0 ? 0.75 : 1);
-  heart.mat.color.setScalar(0.8 + (0.4 + 0.6 * warn) * pulse);
+  heart.light.intensity = heart.base * lightOn * (0.6 + (0.45 + 1.4 * warn) * pulse) * lerp(1, 0.22, heart._h) * (1 + 7 * D.flareT) * (D.flareCd > 0 ? 0.75 : 1) * lerp(1, 0.3, weak);
+  const b = (0.8 + (0.4 + 0.6 * warn) * pulse) * (1 + 0.6 * kick);
+  heart.mat.color.setRGB(b * lerp(1, 0.38, weak), b * lerp(1, 0.5, weak), b * lerp(1, 0.55, weak));
 }
 function updateFog(dt) {
   fog.color.lerp(W.fogC, 1 - Math.exp(-3 * dt));
@@ -4065,11 +4222,12 @@ function updateAudio(dt) {
     S.mv.forEach((v, i) => {
       const it = near[i];
       if (!it || it.d > 40) { setG(v.breath, 0, 0.3); setG(v.hiss, 0, 0.2); v.wh.update(dt, 0); return; }
+      /* unaware they are almost silent; the voice only swells once they have seen you */
       const e = it.e, ch = e.st === 'chase' ? 1 : 0, al = e.st === 'alert' ? 1 : 0;
       placePanner(v.pn, e.x, e.kind === 'crawler' ? 0.4 : 1.3, e.z);
-      setG(v.breath, (0.22 + 0.55 * ch + 0.3 * al) * e.op, 0.2);
-      setG(v.hiss, 0.14 * ch * e.op, 0.15);
-      v.wh.update(dt, (0.04 + 0.22 * al + 0.3 * ch) * e.op);
+      setG(v.breath, (0.03 + 0.9 * ch + 0.4 * al) * e.op, ch || al ? 0.06 : 0.5);
+      setG(v.hiss, (0.3 * ch + 0.08 * al) * e.op, 0.1);
+      v.wh.update(dt, (0.01 + 0.25 * al + 0.55 * ch) * e.op);
     });
   }
   W.whisper = Math.max(0, W.whisper);
@@ -4102,9 +4260,10 @@ function updateAudio(dt) {
   MUS.update(dt);
   if (C.active && C.gp.visible && !C.jump) {
     placePanner(S.cPan, C.x, 3, C.z);
-    const vol = C.freeze ? 0 : (C.mode === 'hunt' ? 0.7 : 0.4) * C.op;
-    setG(S.cGrowl, vol * 0.2, 0.3); setG(S.cBreath, vol * 0.7, 0.3);
-    S.cWhisp.update(dt, C.freeze ? 0 : (C.mode === 'hunt' ? 0.8 : 0.35) * C.op);
+    const aware = C.mode === 'hunt' ? 1 : C.mode === 'alert' ? 0.6 : C.mode === 'search' ? 0.25 : 0.06;
+    const vol = C.freeze ? 0 : aware * C.op;
+    setG(S.cGrowl, vol * 0.32, aware > 0.5 ? 0.08 : 0.6); setG(S.cBreath, vol * 0.85, aware > 0.5 ? 0.08 : 0.6);
+    S.cWhisp.update(dt, C.freeze ? 0 : aware * C.op);
   } else { setG(S.cGrowl, 0, 0.5); setG(S.cBreath, 0, 0.5); S.cWhisp.update(dt, 0); }
   if (W.wagonMoving && (state === 'deni' || state === 'intro')) {
     W.clackAcc -= dt; if (W.clackAcc <= 0 && state === 'deni') { clack(MUS.quant(now, 4), 0.1); W.clackAcc = 4 * MUS.beatLen(); }
@@ -4182,6 +4341,7 @@ function updateVolume() {
     siteLights.forEach(l => volLight(l, l.intensity * 0.11));
     for (const q of quays) volLight(q.bulb, q.spot.intensity * 0.045);
     for (const b of booths) if (b.lit) volLight(b.glow, 0.45 * (b.flk ?? 1));
+    for (const g of giants) if (g.active) volLight(g.foot, 0.9 * g.bk);
     const cx = P.uCamPos.value.x, cz = P.uCamPos.value.z;
     VOL_L.forEach(l => { l.s = l.w / (1 + ((l.x - cx) ** 2 + (l.z - cz) ** 2) * 0.01); });
     VOL_L.sort((a, b) => b.s - a.s);
@@ -4263,14 +4423,6 @@ function frame(now) {
   P.uAberr.value = fx.aberr;
   P.uFade.value = clamp(fx.fade, 0, 1);
   P.uFlash.value = clamp(fx.flash, 0, 1);
-  {
-    const lf = $('life'), on = W.heartOwned && (state === 'tristesse' || state === 'final') && !W.done2;
-    const life = clamp(1 - (typeof SW !== 'undefined' ? SW.fear : 0), 0, 1);
-    LIFE.kick = Math.max(0, LIFE.kick - 0.06);
-    lf.style.opacity = on ? (0.25 + 0.7 * life).toFixed(2) : '0';
-    lf.style.filter = 'saturate(' + (0.2 + 0.8 * life).toFixed(2) + ') brightness(' + (0.45 + 0.55 * life).toFixed(2) + ')';
-    lf.style.transform = 'scale(' + (1 + 0.08 * heartPulse() * (0.5 + life) + 0.45 * LIFE.kick).toFixed(3) + ')';
-  }
   P.uHurt.value = clamp(Math.max(fx.hurt, (typeof SW !== 'undefined' ? SW.fear : 0) * 0.45), 0, 1);
   const lbh = (cine.k * 11).toFixed(2) + 'vh';
   if (lbh !== cine.last) { cine.last = lbh; $('lbT').style.height = $('lbB').style.height = lbh; }
