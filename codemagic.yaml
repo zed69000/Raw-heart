@@ -7,8 +7,8 @@ workflows:
     max_build_duration: 30
     working_directory: android-app
     environment:
-      node: 20
-      java: 17
+      node: 22
+      java: 21
     triggering:
       events:
         - push
@@ -18,30 +18,8 @@ workflows:
     scripts:
       - name: Install Capacitor
         script: npm install
-      - name: Prepare the web files (Three.js bundled, works offline)
-        script: |
-          rm -rf www && cp -R ../public www
-          mkdir -p www/vendor
-          curl -fsSL https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js -o www/vendor/three.module.js
-          perl -pi -e 's#https://cdn\.jsdelivr\.net/npm/three\@0\.160\.0/build/three\.module\.js#./vendor/three.module.js#' www/index.html
-          grep -q "./vendor/three.module.js" www/index.html
-      - name: Generate the Android project
-        script: |
-          npx cap add android
-          RES=android/app/src/main/res
-          # landscape only
-          perl -0pi -e 's/<activity\b/<activity android:screenOrientation="sensorLandscape"/' android/app/src/main/AndroidManifest.xml
-          grep -q 'sensorLandscape' android/app/src/main/AndroidManifest.xml
-          # full screen activity, dark launch screen, game icon
-          cp native/java/MainActivity.java android/app/src/main/java/com/zed69000/rawheart/MainActivity.java
-          find $RES -name 'splash.png' -delete
-          cp native/splash.xml $RES/drawable/splash.xml
-          rm -rf $RES/mipmap-anydpi-v26
-          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do cp native/res/mipmap-$d/*.png $RES/mipmap-$d/; done
-          perl -0pi -e 's#(<style name="AppTheme.NoActionBarLaunch"[^>]*>)#$1\n        <item name="windowSplashScreenBackground">\#050606</item>#' $RES/values/styles.xml
-          perl -0pi -e 's#(<style name="AppTheme.NoActionBar"[^>]*>)#$1\n        <item name="android:windowBackground">\#050606</item>\n        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>#' $RES/values/styles.xml
-          cat $RES/values/styles.xml
-          npx cap sync android
+      - name: Generate the Android project (web files with Three.js bundled, landscape, full screen, icon)
+        script: bash prepare.sh
       - name: Build the APK
         script: |
           # same debug key on every build, so a new APK installs over the previous one
