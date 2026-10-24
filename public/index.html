@@ -66,6 +66,20 @@ button.ghost{font-size:.72rem;padding:.5rem 1rem;letter-spacing:.2em}
 #subs.far{font-style:italic;color:var(--smoke)}
 #subs.mono{font-style:normal}
 #subs.voice{font-style:italic}
+/* the drawn hands: cut from the concept art, anchored where the drawing has them; the compass needle is live */
+#hands{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+#hands>div{position:absolute;bottom:0;opacity:0;will-change:transform,opacity}
+#hands img{display:block;height:100%;width:auto}
+#hands img.obj{position:absolute;left:0;top:0}
+#hands img.hand{position:relative}
+#hCompass{transform-origin:82.5% 23.3%}
+#hHeart{transform-origin:27.8% 20.4%}
+#hL{left:10.8%;height:49.9vh;bottom:-9.9vh!important;transform-origin:70% 80%}
+#hR{left:63.3%;height:49vh;bottom:-9.8vh!important;transform-origin:30% 80%}
+#needle{position:absolute;left:72.95%;top:12.35%;width:19.05%;aspect-ratio:1}
+#needle canvas{position:absolute;inset:0;width:100%;height:100%}
+.tipglow{position:absolute;left:50%;top:6%;width:40%;height:40%;margin-left:-20%;border-radius:50%;background:radial-gradient(circle,rgba(255,217,160,.95),rgba(255,217,160,0) 70%);opacity:0}
+.hglow{position:absolute;left:5%;top:-5%;width:62%;height:56%;border-radius:50%;background:radial-gradient(circle,rgba(255,170,150,.75),rgba(255,140,120,0) 68%);mix-blend-mode:screen;opacity:0}
 #prompt{position:fixed;left:0;right:0;bottom:calc(6% + env(safe-area-inset-bottom,0px));text-align:center;font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--smoke);opacity:0;transition:opacity .5s;pointer-events:none;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 #prompt.on{opacity:1}
@@ -168,6 +182,10 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
 </style>
 
 <canvas id="c"></canvas>
+<div id="hands" aria-hidden="true">
+  <div id="hL"><img class="obj" id="hCompass" src="compass-1.webp" data-boil="compass" alt=""><div id="needle"><i class="tipglow"></i><canvas width="96" height="96"></canvas></div><img class="hand" src="hand-compass-1.webp" data-boil="hand-compass" alt=""></div>
+  <div id="hR"><i class="hglow"></i><img class="obj" id="hHeart" src="heart-1.webp" data-boil="heart" alt=""><img class="hand" src="hand-heart-1.webp" data-boil="hand-heart" alt=""></div>
+</div>
 <div id="fall" aria-hidden="true" hidden></div>
 <div id="map" hidden><div id="mapwrap"><canvas id="mapc" width="520" height="640"></canvas></div><p id="mapnote"></p><button class="ghost" id="mapclose" type="button">Fermer</button></div>
 <div class="lb" id="lbT"></div><div class="lb" id="lbB"></div>
@@ -206,7 +224,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v24 · 24.10.2026</p>
+  <p class="ver" id="ver">v25 · 24.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -2112,7 +2130,7 @@ function relayNext() {
 }
 function placeRelay(l, x, z) {
   Object.assign(l, { x, z, on: true, reached: false, k: 0, flk: 1, placedAt: gt, ign: 1.2 + 0.5 * Math.min(W.fragIndex, 3) });
-  Object.assign(l.ref, { dead: false, dwell: 0, die: -1, flk: 1, warned: false });
+  Object.assign(l.ref, { dead: false, dwell: 0, die: -1, flk: 1, warned: false, bp: 0 });
   l.gp.position.set(x - 0.95, groundH(x, z), z); l.gp.visible = true;
   compass.jolt = 1;
   if (AC) {
@@ -2147,16 +2165,26 @@ function updateLights(dt) {
     r.dwell += dt * (r === here ? 1 : 0.3);
     const wp = smooth(0.4, 1, r.dwell / dwellMax());
     if (wp > 0 && !(r.crk > 0)) {
-      r.flk = Math.random() < 0.08 + 0.5 * wp * wp ? mr(0.05, 0.45) : 1; lightVisual(r);
+      /* about to go: it blinks on and off, faster and faster, ticking at each cut */
+      r.bp = (r.bp || 0) + dt / lerp(0.75, 0.12, wp);
+      const on = r.bp % 1 < 0.55;
+      if (!on && r.wasOn && AC && Math.hypot(r.x - player.x, r.z - player.z) < 30) tick(AC.currentTime);
+      r.wasOn = on; r.flk = on ? 1 : 0.05; lightVisual(r);
       if (r === here) buzz = Math.max(buzz, wp);
-      if (AC && r === here && Math.random() < dt * 7 * wp) tick(AC.currentTime);
       if (r === here && !r.warned) { r.warned = true; inner('warn.light'); }
     }
     if (r.dwell > dwellMax()) { r.die = 0; r.warned = false; }
   }
   if (AC && (buzz > 0 || W.buzzing)) { setG(S.hum, 0.07 * buzz, 0.2); W.buzzing = buzz > 0; }
   for (const l of RELAY) {
-    if (l.ign > 0) { l.ign -= dt; l.flk = Math.random() < 0.55 ? mr(0, 0.15) : mr(0.3, 0.8); if (AC && Math.random() < dt * 8) tick(AC.currentTime); if (l.ign <= 0) l.flk = 1; }
+    if (l.ign > 0) {
+      /* lighting up: clean on-off blinks, each with a tick, so the new lamp is noticed */
+      l.ign -= dt;
+      const off = Math.floor(l.ign / 0.16) % 2 === 1;
+      if (off && !l.ioff && AC) tick(AC.currentTime);
+      l.ioff = off; l.flk = off ? 0.04 : 1;
+      if (l.ign <= 0) l.flk = 1;
+    }
     l.k = damp(l.k, l.on ? 1 : 0, l.on ? 5 : 12, dt);
     const k = l.k * (l.on ? l.flk : 0);
     l.light.intensity = 6 * k; l.glow.material.opacity = 0.85 * k; l.halo.material.opacity = 0.2 * k; l.shaft.material.uniforms.uOp.value = 0.2 * k;
@@ -2795,6 +2823,8 @@ const heart = (() => {
   const hand = makeHand(true, true); hand.gp.position.set(0, -0.078, 0.004); hand.gp.rotation.set(0, 0.85, 0.1); gp.add(hand.gp); hand.curl(0.75);
   const light = new THREE.PointLight(0xffe4dc, 0, 4, 1.6); light.position.set(0, 0.12, -0.25); gp.add(light);
   gp.visible = false; camera.add(gp);
+  /* the drawn hand (#hR) is shown instead of the model; only the light stays in the scene */
+  core.visible = false; hand.gp.visible = false;
   return { gp, core, mat, light, hand, shown: false, hidden: false, k: 0, base: 2.2 };
 })();
 
@@ -2841,6 +2871,8 @@ const compass = (() => {
   const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.004, 8), new THREE.MeshBasicMaterial({ color: 0x3a2f20, fog: false })); pin.position.y = 0.012; gp.add(pin);
   const hand = makeHand(false, false); hand.gp.position.set(-0.006, -0.026, 0.006); hand.gp.rotation.set(0, -0.8, 0); gp.add(hand.gp); hand.curl(0.85);
   gp.visible = false; camera.add(gp);
+  /* the drawn hand (#hL) is shown instead of the model; the needle angle is still computed here */
+  gp.children.forEach(o => { if (o !== needle) o.visible = false; }); needle.children.forEach(o => { o.visible = false; });
   return { gp, dial, needle, hand, tip, k: 0, shown: false, target: null, jolt: 0, raise: 0, still: 0, align: 0, chimeT: 0, wasAligned: false };
 })();
 function updateCompass(dt) {
@@ -3187,7 +3219,8 @@ function scheduleGiants() {
   if (anyActive || gt < GI.next) return;
   GI.waves++;
   const second = W.fragIndex >= 2;
-  launchGiant(giants[0], { side: Math.random() < 0.5 ? 1 : -1, ahead: second ? 40 : 60, look: second });
+  /* close enough to stand out of the mist: they cross in front, over the trees */
+  launchGiant(giants[0], { side: Math.random() < 0.5 ? 1 : -1, ahead: second ? 30 : 38, lateral: 50, look: second });
   if (second) setTimeout(() => { if (!giants[1].active) launchGiant(giants[1], { side: -1, ahead: 95, lateral: 110, speed: 0.9, len: 220 }); }, 9000);
   if (GI.waves <= 2) setTimeout(() => { const g = giants[0]; if (g.active && !busy) cineLook(g.x, groundH(g.x, g.z) + g.h.H * 0.9, g.z, 1.8); }, 2500);
   if (GI.waves === 1) { setTimeout(() => say(loc('giants.first'), 4, 'mono'), 6000); setTimeout(() => say(loc('giant.beam'), 4.4, 'mono'), 12500); }
@@ -3575,8 +3608,9 @@ async function fuite() {
   player.canLook = true;
   player.seated = false;
   tween(player, 'eye', 1.62, 0.9);
-  player.x = 0; player.z = wagon.position.z - 2.6;
+  player.x = 0; player.z = wagon.position.z + 0.4;
   player.roll = 0.08; tween(player, 'roll', 0, 1.2);
+  wagonBreak();
   W.wagonSpeed = 0.9;
   setFog(FOG_DARK, 0.055);
   W.dark = 0.15; W.ci = -1; W.recede = 0;
@@ -3632,8 +3666,41 @@ function spotCrackle(x, z) {
   setTimeout(() => pn.disconnect(), 1500);
 }
 
+/* Standing up breaks the dream car apart around him: panels, roof, benches and floor tumble away and sink into the mist. */
+function wagonBreak() {
+  if (!wagon.visible) return;
+  const px = player.x - wagon.position.x, pz = player.z - wagon.position.z;
+  W.wagonBits = [];
+  wagon.children.forEach(m => {
+    if (m.isSprite) { m.visible = false; return; }
+    if (!m.isMesh) return;
+    const dx = m.position.x - px, dz = m.position.z - pz, d = Math.hypot(dx, dz) || 1, high = m.position.y > 1.6;
+    W.wagonBits.push({ m, vx: dx / d * mr(0.6, 1.8), vy: high ? mr(0.6, 1.6) : mr(0, 0.5), vz: dz / d * mr(0.6, 1.8),
+      rx: mr(-1.6, 1.6), ry: mr(-1, 1), rz: mr(-1.6, 1.6), delay: (high ? 0 : 0.4) + mr(0, 0.9) });
+  });
+  W.wagonBreakT = 0; W.wagonMoving = false;
+  player.shake = 0.6; tween(player, 'shake', 0, 1.4);
+  if (AC) { const t = AC.currentTime; crunch(t, 0.8); crunch(t + 0.3, 0.6); thump(t + 0.1, 0.7, 55, S.world, 0.5); AMB.creak(t + 0.15); }
+}
+function updateWagonBreak(dt) {
+  if (!(W.wagonBreakT >= 0)) return;
+  W.wagonBreakT += dt;
+  /* the ceiling lamp sputters back on while it all comes apart, so the pieces can be seen leaving */
+  const lt = W.wagonBreakT;
+  wagonLamp.set(lt < 3 ? (Math.random() < 0.25 ? 0.2 : 1) * (1 - lt / 3.2) : 0);
+  for (const b of W.wagonBits) {
+    if (lt < b.delay) continue;
+    b.y0 ??= b.m.position.y;
+    b.vy -= 3.5 * dt;
+    if (b.m.position.y < Math.min(b.y0, 0.6)) b.vy = Math.max(b.vy, -0.35);
+    b.m.position.x += b.vx * dt; b.m.position.y += b.vy * dt; b.m.position.z += b.vz * dt;
+    b.m.rotation.x += b.rx * dt; b.m.rotation.y += b.ry * dt; b.m.rotation.z += b.rz * dt;
+  }
+  if (lt > 4.5) { wagon.visible = false; W.wagonBreakT = -1; }
+}
 function nearLampFor() { return Math.hypot(player.x - 1.5, player.z - quay1.gp.position.z) < 12; }
 function updateFuite(dt) {
+  updateWagonBreak(dt);
   if (W.wagonMoving) {
     wagon.position.z += W.wagonSpeed * dt;
     if (wagon.position.z > 40) { wagon.visible = false; W.wagonMoving = false; }
@@ -3660,11 +3727,16 @@ function updateFuite(dt) {
     if (p.state === 'active') {
       target = p.scale;
       const wp = 1 - clamp(p.time / 2.6, 0, 1);
-      if (wp > 0) { if (Math.random() < 0.1 + 0.55 * wp) target *= mr(0.05, 0.45); if (AC && i === W.ci && Math.random() < dt * 8 * wp) tick(AC.currentTime); }
+      if (wp > 0) {
+        p.bp = (p.bp || 0) + dt / lerp(0.6, 0.12, wp);
+        const on = p.bp % 1 < 0.55;
+        if (!on && p.wasOn && AC) tick(AC.currentTime);
+        p.wasOn = on; if (!on) target *= 0.05;
+      } else p.bp = 0;
     }
     else if (p.state === 'idle' && i === W.ci + 1 && p.lit) target = 0.45;
-    if (p.ign > 0) { p.ign -= dt; target *= Math.random() < 0.5 ? mr(0, 0.3) : 1; }
-    p.vis = p.ign > 0 ? target : damp(p.vis, target, 3, dt);
+    if (p.ign > 0) { p.ign -= dt; target *= Math.floor(p.ign / 0.15) % 2 === 1 ? 0.05 : 1; }
+    p.vis = p.ign > 0 || p.bp > 0 ? target : damp(p.vis, target, 3, dt);
     const flick = 0.92 + 0.08 * Math.sin(gt * 13 + i);
     p.shaft.material.uniforms.uOp.value = 0.26 * p.vis * flick;
     p.disc.material.opacity = 0.55 * p.vis;
@@ -4491,7 +4563,7 @@ function spawnEnemy(kind, ang, dist, st = 'chase') {
   if (inLight(x, z, 2)) return null;
   Object.assign(e, { active: true, x, z, hx: x, hz: z, tx: x, tz: z, yaw: mr(0, 6.28), phase: mr(0, 6), op: 0, dying: 0, vx: 0, vz: 0, ashed: false,
     st, t: 0, lost: 0, still: 0, pause: 0, flank: mr(-0.75, 0.75), eye: st === 'chase' ? 1.3 : 0.3, mouth: st === 'chase' ? 1 : 0, lastX: player.x, lastZ: player.z,
-    scale: (kind === 'crawler' ? 0.9 : kind === 'echo' ? 1.05 : 0.8) * growth() });
+    scale: (kind === 'crawler' ? 0.9 : kind === 'echo' ? 1.05 : 0.95) * growth() });
   e.h.gp.visible = true; e.h.gp.scale.setScalar(e.scale); setEyes(e.h, 1);
   if (st === 'chase') ashBurst(x, groundH(x, z) + 0.2, z, 50, 0.8, 1.2);
   return e;
@@ -4691,11 +4763,11 @@ function updateSwarm(dt) {
         }
       }
       const gd = Math.hypot(gx, gz) || 1;
-      const [mx, mz] = avoidDir(e.x, e.z, gx / gd, gz / gd, 0.5 * e.scale);
+      const [mx, mz] = avoidDir(e.x, e.z, gx / gd, gz / gd, 0.42);
       e.x += mx * sp * dt; e.z += mz * sp * dt;
-      pushOut(e, 0.45 * e.scale); keepOutOfHuts(e);
+      pushOut(e, 0.38); keepOutOfHuts(e);
       for (const o of SWARM) if (o !== e && o.active && !o.dying) {
-        const sx2 = e.x - o.x, sz2 = e.z - o.z, sd = Math.hypot(sx2, sz2), m = 0.6 * (e.scale + o.scale);
+        const sx2 = e.x - o.x, sz2 = e.z - o.z, sd = Math.hypot(sx2, sz2), m = 0.5 + 0.2 * (e.scale + o.scale);
         if (sd < m && sd > 1e-4) { e.x += sx2 / sd * (m - sd) * 0.5; e.z += sz2 / sd * (m - sd) * 0.5; }
       }
       if (inLight(e.x, e.z, 0.3)) killEnemy(e, false);
@@ -4974,6 +5046,51 @@ function updateHeartModel(dt) {
   const b = (0.8 + (0.4 + 0.6 * warn) * pulse) * (1 + 0.6 * kick);
   heart.mat.color.setRGB(b * lerp(1, 0.38, weak), b * lerp(1, 0.5, weak), b * lerp(1, 0.55, weak));
 }
+/* Drives the drawn hands from the same state the models used: shown, raised, swaying, clutched, weakening, pulsing. */
+const HD = (() => {
+  const c = document.querySelector('#needle canvas'), x = c.getContext('2d');
+  x.translate(48, 48);
+  const blade = (len, col) => { x.fillStyle = col; x.beginPath(); x.moveTo(-5, 0); x.lineTo(0, -len); x.lineTo(5, 0); x.closePath(); x.fill(); x.strokeStyle = '#1d1712'; x.lineWidth = 1.2; x.stroke(); };
+  blade(40, '#c8301c'); x.rotate(Math.PI); blade(30, '#2a2018');
+  x.fillStyle = '#3a2f20'; x.beginPath(); x.arc(0, 0, 4, 0, 7); x.fill();
+  /* all boil frames are fetched up front so the first swaps do not flash */
+  for (const n of ['compass', 'hand-compass', 'heart', 'hand-heart']) for (let k = 1; k <= 3; k++) new Image().src = `${n}-${k}.webp`;
+  return { L: $('hL'), R: $('hR'), nd: $('needle'), tip: document.querySelector('.tipglow'), glow: document.querySelector('.hglow'), comp: $('hCompass'), heart: $('hHeart'), boil: [...document.querySelectorAll('#hands img[data-boil]')], bf: 0 };
+})();
+function updateHands2D() {
+  const vis = 1 - clamp(fx.fade, 0, 1);
+  const bob = player.moving ? player.bob : 0, sway = Math.sin(bob) * 0.9, lift = Math.abs(Math.sin(bob)) * 0.7;
+  /* clutching pulls the heart hand in against the chest; looking at something lowers both hands out of the way */
+  const h = heart.gp.visible ? (heart._h ?? 0) : 0;
+  HD.look = damp(HD.look || 0, cine.k > 0.05 || (W.poi && keys.has('KeyV')) ? 1 : 0, 6, W._dt || 0.016);
+  const tuck = Math.max(h, 0.7 * HD.look), tuckL = 0.7 * HD.look;
+  /* line boil: each drawing steps through three slightly displaced versions, like hand-drawn frames */
+  const bf = Math.floor(performance.now() / 150) % 3;
+  if (bf !== HD.bf) { HD.bf = bf; for (const im of HD.boil) im.src = `${im.dataset.boil}-${bf + 1}.webp`; }
+  const ck = compass.gp.visible ? compass.k : 0;
+  if (ck > 0.01) {
+    const rk = compass.raise * (1 - tuckL);
+    HD.L.style.opacity = (ck * vis).toFixed(3);
+    HD.L.style.transform = `translate(${(sway + 2 * rk).toFixed(2)}vw, ${((1 - ck) * 40 - 7 * rk + lift + 18 * tuckL).toFixed(2)}vh) rotate(${(-3 * rk + sway * 0.6).toFixed(2)}deg) scale(${(1 + 0.08 * rk).toFixed(3)})`;
+    /* the compass trembles in the hand, harder when danger is near or the needle is lost */
+    const tr = 1.6 * (W.danger || 0) + 2.5 * (W.edge || 0) + 3 * compass.jolt;
+    HD.comp.style.transform = `translate(${((Math.random() - 0.5) * 0.25 * tr).toFixed(2)}%, ${((Math.random() - 0.5) * 0.25 * tr).toFixed(2)}%) rotate(${((Math.random() - 0.5) * 0.9 * tr).toFixed(2)}deg)`;
+    HD.nd.style.transform = `${HD.comp.style.transform} rotate(${(-compass.needle.rotation.y).toFixed(3)}rad)`;
+    HD.tip.style.opacity = compass.align.toFixed(2);
+  } else HD.L.style.opacity = '0';
+  const hk = heart.gp.visible ? heart.k : 0;
+  if (hk > 0.01) {
+    const weak = clamp(SW.fear, 0, 1), kick = LIFE.kick, pulse = heartPulse(), warn = W.danger || 0;
+    const jx = kick * (Math.random() - 0.5) * 1.6, jy = kick * (Math.random() - 0.5) * 1.6;
+    HD.R.style.opacity = (hk * vis).toFixed(3);
+    HD.R.style.transform = `translate(${(-sway - 14 * h + jx).toFixed(2)}vw, ${((1 - hk) * 40 + 16 * tuck - 5 * smooth(0.35, 0.9, weak) * (1 - h) + lift + jy).toFixed(2)}vh) rotate(${(-12 * h + kick * 6 * Math.sin(gt * 40)).toFixed(2)}deg)`;
+    /* only the heart beats, under the fingers; weaker it beats smaller, a hit makes it spasm */
+    const s = (1 + (0.07 + 0.08 * warn) * pulse * lerp(1, 0.55, weak)) * lerp(1, 0.9, weak) * (1 - 0.12 * kick);
+    HD.heart.style.transform = `scale(${s.toFixed(3)}, ${(s * 0.97).toFixed(3)}) rotate(${(kick * 4 * Math.sin(gt * 37)).toFixed(2)}deg)`;
+    HD.R.style.filter = h > 0.02 || weak > 0.05 ? `brightness(${(lerp(1, 0.45, h) * lerp(1, 0.7, weak)).toFixed(2)}) saturate(${lerp(1, 0.55, weak).toFixed(2)})` : '';
+    HD.glow.style.opacity = ((0.3 + (0.4 + 0.8 * warn) * pulse) * (1 + 3 * D.flareT) * (1 - h) * lerp(1, 0.4, weak)).toFixed(3);
+  } else HD.R.style.opacity = '0';
+}
 function updateFog(dt) {
   if (W.camO) fog.color.copy(W.camO.col); else fog.color.lerp(W.fogC, 1 - Math.exp(-3 * dt));
   scene.background.copy(fog.color);
@@ -5194,6 +5311,7 @@ function frame(now) {
   P.uTime.value = now / 1000;
   smokeTime.value = now / 1000;
   updateTouchUI();
+  updateHands2D();
   updateVolume();
   P.uFogD.value = fog.density;
   P.uTunnel.value = clamp(fx.tunnel, 0, 1);

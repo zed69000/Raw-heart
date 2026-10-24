@@ -1,6 +1,6 @@
 {
   "name": "raw-heart-android",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "private": true,
   "description": "Android wrapper for the Raw Heart web game, built by Codemagic",
   "dependencies": {
