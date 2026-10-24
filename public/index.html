@@ -224,7 +224,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v27 · 24.10.2026</p>
+  <p class="ver" id="ver">v28 · 24.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -5433,13 +5433,19 @@ function initTouch() {
   });
   const endLook = e => { if (e.pointerId === TI.lookId) TI.lookId = null; };
   lz.addEventListener('pointerup', endLook); lz.addEventListener('pointercancel', endLook);
-  const hold = (id, code) => {
-    const b = $(id);
-    b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (err) {} b.classList.add('held'); keys.add(code); pressedAt.set(code, performance.now()); });
-    const up = () => { b.classList.remove('held'); keys.delete(code); };
+  /* a held button can also steer: sliding the same finger turns the head, so clutching the heart does not freeze the view */
+  const hold = (id, code, steer = false) => {
+    const b = $(id); let sx = 0, sy = 0, pid = null;
+    b.addEventListener('pointerdown', e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (err) {} pid = e.pointerId; sx = e.clientX; sy = e.clientY; b.classList.add('held'); keys.add(code); pressedAt.set(code, performance.now()); });
+    if (steer) b.addEventListener('pointermove', e => {
+      if (e.pointerId !== pid || !player.canLook) return;
+      look.dx += (e.clientX - sx) * CFG.touchLook; look.dy += (e.clientY - sy) * CFG.touchLook * 0.75;
+      sx = e.clientX; sy = e.clientY;
+    });
+    const up = () => { pid = null; b.classList.remove('held'); keys.delete(code); };
     b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
   };
-  hold('tAct', 'KeyE'); hold('tHide', 'KeyF'); hold('tFlare', 'KeyR'); hold('tLook', 'KeyV');
+  hold('tAct', 'KeyE'); hold('tHide', 'KeyF', true); hold('tFlare', 'KeyR'); hold('tLook', 'KeyV');
   $('tPause').addEventListener('click', () => setPaused(!paused));
   $('interlude').addEventListener('click', () => pressedAt.set('Space', performance.now()));
   const rot = matchMedia('(orientation: portrait)');
