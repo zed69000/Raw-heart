@@ -203,7 +203,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v21 · 20.10.2026</p>
+  <p class="ver" id="ver">v22 · 24.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -717,12 +717,6 @@ function initAudio() {
   S.whisp = new Whispers(S.world, 4, true, 3);
 
   S.cPan = panner(4); S.cPan.connect(S.world); S.cPan.connect(g(0.35, S.rev));
-  S.cGrowl = g(0, S.cPan);
-  const gr = AC.createOscillator(); gr.type = 'triangle'; gr.frequency.value = 41;
-  gr.connect(biq('lowpass', 160)).connect(S.cGrowl); gr.start();
-  S.cBreath = g(0, S.cPan);
-  const br = g(0); loopNoise(S.brown).connect(biq('bandpass', 420, 1.2)).connect(br).connect(S.cBreath);
-  const lfo = AC.createOscillator(); lfo.frequency.value = 0.3; const lfoG = g(0.9); lfo.connect(lfoG).connect(br.gain); lfo.start();
   S.cWhisp = new Whispers(S.cPan, 3, false, 4);
   S.chimePan = panner(5); S.chimePan.connect(S.world); S.chimePan.connect(g(0.6, S.rev));
   S.gPan = panner(2); S.gPan.connect(S.world); S.gPan.connect(g(0.3, S.rev));
@@ -734,12 +728,10 @@ function initAudio() {
   S.mv = [0, 1, 2, 3, 4, 5].map(() => {
     const pn = new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: 2.5, maxDistance: 60, rolloffFactor: 1.35 });
     pn.connect(S.world); pn.connect(g(0.22, S.rev));
-    const breath = g(0, pn), bm = g(0.9);
-    loopNoise(S.brown).connect(biq('bandpass', mr(320, 460), 1.4)).connect(bm).connect(breath);
-    const lfo = AC.createOscillator(); lfo.frequency.value = mr(0.22, 0.45); lfo.connect(g(0.85)).connect(bm.gain); lfo.start();
-    const hiss = g(0, pn); loopNoise(S.pink).connect(biq('bandpass', mr(2200, 3000), 2)).connect(hiss);
-    return { pn, breath, hiss, wh: new Whispers(pn, 2, false, 2.4) };
+    return { pn, wh: new Whispers(pn, 2, false, 2.4) };
   });
+  S.shape = distCurve(5);
+  AMB.init();
   /* calmPad, drone and glass are driven by the music engine layers; kept as silent nodes for older call sites */
   S.calmPad = g(0); S.drone = g(0); S.glass = g(0);
 }
@@ -793,11 +785,122 @@ function scream(t) {
   o.start(t); o.stop(t + 1.4);
 }
 function boom(t) { thump(t, 0.8, 36, S.world, 1.0); burst(t, { dur: 1.1, amp: 0.4, type: 'lowpass', freq: 140, buf: S.brown }); }
-function rasp(t, dest = S.cPan) { burst(t, { dur: 1.1, amp: 0.35, freq: 480, Q: 1.6, dest, attack: 0.4, buf: S.brown }); }
+function rasp(t, dest = S.cPan) { vBreath(t, dest, Math.random() < 0.4, mr(0.7, 1.3), mr(330, 560), 0.45, mr(0.3, 0.8)); }
+
+/* ---------- creature voices ---------- */
+/* Each sound is a short gesture with its own shape, never a loop: a breath in or out with a wet rattle,
+   a throat groan through vowel formants, a sniff, chitters, a twig snap. Silence between them does the work. */
+function vBreath(t, dest, inh, dur, f, amp, rough = 0) {
+  const s = AC.createBufferSource(); s.buffer = f < 700 ? S.brown : S.pink;
+  const bp = biq('bandpass', f, f < 700 ? 1.4 : 2.2);
+  bp.frequency.setValueAtTime(f * (inh ? 0.8 : 1.15), t); bp.frequency.linearRampToValueAtTime(f * (inh ? 1.2 : 0.75), t + dur);
+  const gg = AC.createGain(); gg.gain.setValueAtTime(0.0001, t);
+  gg.gain.linearRampToValueAtTime(amp, t + dur * (inh ? 0.7 : 0.25)); gg.gain.linearRampToValueAtTime(0.0001, t + dur);
+  s.connect(bp).connect(gg);
+  if (rough > 0) {
+    /* the rattle: the breath chopped by a slow flutter, like air through something wet */
+    const am = g(1 - rough * 0.5), lfo = AC.createOscillator(); lfo.type = 'square';
+    lfo.frequency.setValueAtTime(mr(16, 32), t); lfo.frequency.linearRampToValueAtTime(mr(11, 26), t + dur);
+    lfo.connect(g(rough * 0.5)).connect(am.gain); gg.connect(am); am.connect(dest);
+    lfo.start(t); lfo.stop(t + dur + 0.05);
+  } else gg.connect(dest);
+  s.start(t, Math.random() * 3); s.stop(t + dur + 0.05);
+}
+const VOWELS = [[480, 880], [360, 760], [620, 1060], [420, 1600]];
+function groan(t, dest, f0, dur, amp) {
+  const o = AC.createOscillator(); o.type = 'sawtooth';
+  o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * mr(1.05, 1.25), t + dur * 0.3); o.frequency.exponentialRampToValueAtTime(f0 * mr(0.55, 0.8), t + dur);
+  const jit = AC.createOscillator(); jit.frequency.value = mr(4, 9); jit.connect(g(f0 * mr(0.02, 0.06))).connect(o.frequency);
+  const sh = AC.createWaveShaper(); sh.curve = S.shape;
+  const [v1, v2] = VOWELS[Math.floor(Math.random() * VOWELS.length)];
+  const f1 = biq('bandpass', v1, 5), f2 = biq('bandpass', v2, 7);
+  f1.frequency.linearRampToValueAtTime(v1 * mr(0.7, 1.1), t + dur);
+  const gg = AC.createGain(); gg.gain.setValueAtTime(0.0001, t); gg.gain.linearRampToValueAtTime(amp, t + dur * 0.2);
+  gg.gain.setValueAtTime(amp, t + dur * 0.6); gg.gain.linearRampToValueAtTime(0.0001, t + dur);
+  o.connect(sh); sh.connect(f1); sh.connect(f2); f1.connect(gg); f2.connect(g(0.5, gg)); gg.connect(dest);
+  o.start(t); jit.start(t); o.stop(t + dur + 0.05); jit.stop(t + dur + 0.05);
+  vBreath(t, dest, false, dur, v1, amp * 2.2, 0.6);
+}
+function sniff(t, dest, amp) {
+  const n = 2 + Math.floor(Math.random() * 3); let tt = t;
+  for (let i = 0; i < n; i++) { vBreath(tt, dest, true, mr(0.08, 0.16), mr(1500, 2600), amp, 0); tt += mr(0.13, 0.22); }
+  return tt - t;
+}
+function chitter(t, dest, amp) {
+  const n = 4 + Math.floor(Math.random() * 9); let tt = t, gap = mr(0.06, 0.12);
+  for (let i = 0; i < n; i++) { burst(tt, { dur: mr(0.006, 0.018), amp: amp * mr(0.5, 1), freq: mr(1800, 3600), Q: 9, dest }); tt += gap; gap *= mr(0.8, 1.05); }
+  return tt - t;
+}
+function twig(t, dest, amp) {
+  burst(t, { dur: 0.02, amp, type: 'highpass', freq: 2600, Q: 0.8, dest });
+  burst(t + 0.008, { dur: 0.06, amp: amp * 0.7, freq: mr(900, 1500), Q: 3, dest });
+  if (Math.random() < 0.5) burst(t + mr(0.1, 0.25), { dur: 0.03, amp: amp * 0.5, type: 'highpass', freq: 2200, dest });
+}
+function shriek(t, dest, kind) {
+  if (kind === 'crawler') { chitter(t, dest, 1.2); vBreath(t, dest, true, 0.5, 2400, 0.8, 0.4); return; }
+  const o = AC.createOscillator(); o.type = 'sawtooth'; const f = kind === 'blob' ? mr(420, 560) : mr(220, 300);
+  o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 1.9, t + 0.12); o.frequency.exponentialRampToValueAtTime(f * 1.2, t + 0.7);
+  const sh = AC.createWaveShaper(); sh.curve = S.shape;
+  const bp = biq('bandpass', 1300, 1.6), gg = AC.createGain(); env(t, gg, 0.3, 0.03, 0.75);
+  o.connect(sh).connect(bp).connect(gg).connect(dest); o.start(t); o.stop(t + 0.85);
+  vBreath(t, dest, false, 0.6, 1100, 0.9, 0.7);
+}
+/* one idle sound at a time across the whole pack, and never twice the same in a row */
+const VOX = { idleAt: 0, groanAt: 0, last: '' };
+function voxOk(t, key, gap) { if (t < VOX[key]) return false; VOX[key] = t + gap; return true; }
+function pickNot(list) { let k; do k = list[Math.floor(Math.random() * list.length)]; while (list.length > 1 && k === VOX.last); VOX.last = k; return k; }
+function voxSwarm(e, d, dt, pn) {
+  if (e.kind === 'echo' || d > 38 || e.op < 0.3) return;
+  e.vx = (e.vx ?? mr(2, 9)) - dt;
+  if (e.vx > 0) return;
+  const t = AC.currentTime, cr = e.kind === 'crawler', f = cr ? mr(240, 300) : (e.vf ??= mr(360, 520));
+  if (e.st === 'chase') {
+    /* panting in short runs, a groan now and then, then a held breath */
+    const n = 1 + Math.floor(Math.random() * 3); let tt = t;
+    for (let i = 0; i < n; i++) {
+      vBreath(tt, pn, true, mr(0.22, 0.38), f, 0.8, 0.4); tt += mr(0.28, 0.42);
+      vBreath(tt, pn, false, mr(0.3, 0.5), f * 0.9, 1.1, 0.7); tt += mr(0.32, 0.55);
+    }
+    if (cr) tt += chitter(tt, pn, 0.8);
+    else if (Math.random() < 0.3 && voxOk(t, 'groanAt', 3.5)) { groan(tt, pn, mr(70, 110), mr(0.8, 1.5), 0.25); tt += 1.2; }
+    e.vx = tt - t + mr(0.5, 2.4);
+  } else if (e.st === 'alert') {
+    e.vx = (cr ? chitter(t, pn, 0.6) : sniff(t, pn, 0.45)) + mr(1.2, 2.6);
+  } else {
+    /* unaware: rare and quiet, a sign that something is there rather than a voice */
+    if (!voxOk(t, 'idleAt', 7)) { e.vx = mr(1, 3); return; }
+    const k = pickNot(cr ? ['chitter', 'twig'] : ['sniff', 'twig', 'breath', 'sniff']);
+    if (k === 'chitter') chitter(t, pn, 0.4);
+    else if (k === 'twig') twig(t, pn, 0.3);
+    else if (k === 'sniff') sniff(t, pn, 0.16);
+    else { vBreath(t, pn, true, mr(0.6, 0.9), f, 0.22, 0.2); vBreath(t + 0.9, pn, false, mr(0.8, 1.2), f * 0.85, 0.28, 0.5); }
+    e.vx = mr(8, 18);
+  }
+}
+/* the tall one: deep and slow, it breathes in long pulls and groans only while it hunts */
+function voxTall(dt, d) {
+  if (C.freeze || C.op < 0.3 || d > 55) return;
+  C.vx = (C.vx ?? mr(2, 6)) - dt;
+  if (C.vx > 0) return;
+  const t = AC.currentTime, pn = S.cPan, m = C.mode;
+  if (m === 'hunt' || m === 'booth') {
+    vBreath(t, pn, true, mr(0.6, 0.9), mr(260, 320), 0.6, 0.5);
+    vBreath(t + 0.95, pn, false, mr(0.9, 1.3), mr(230, 290), 0.8, 0.8);
+    if (Math.random() < 0.45) groan(t + 2.2, pn, mr(46, 62), mr(1.4, 2.2), 0.3);
+    C.vx = mr(3.2, 5.5);
+  } else if (m === 'alert' || m === 'search') {
+    C.vx = sniff(t, pn, 0.35) + mr(1.8, 3.5);
+    if (Math.random() < 0.3) vBreath(t + 1, pn, false, 1.1, 280, 0.45, 0.6);
+  } else {
+    if (Math.random() < 0.5) heavyStep(t, 0.25, pn); else vBreath(t, pn, false, mr(1, 1.4), mr(250, 300), 0.3, 0.6);
+    C.vx = mr(9, 20);
+  }
+}
 /* Tension hit: a low cluster swelling in, a sub drop and a quiet glass tone; nothing above 2 kHz but the glint. */
 function sting(t, amp = 0.6) {
+  const tr = [0, -2, 1, 3, -1][Math.floor(Math.random() * 5)];
   for (const m of [45, 46, 52, 57]) {
-    const o = AC.createOscillator(); o.type = 'triangle'; o.frequency.value = mtof(m);
+    const o = AC.createOscillator(); o.type = 'triangle'; o.frequency.value = mtof(m + tr);
     const gg = AC.createGain(); gg.gain.setValueAtTime(0.0001, t); gg.gain.exponentialRampToValueAtTime(amp * 0.09, t + 0.04); gg.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
     o.connect(biq('lowpass', 900)).connect(gg); gg.connect(S.world); gg.connect(S.send); o.start(t); o.stop(t + 1.9);
   }
@@ -826,29 +929,137 @@ function updateListener() {
   } else { L.setPosition(p.x, p.y, p.z); L.setOrientation(f.x, f.y, f.z, 0, 1, 0); }
 }
 
+
+/* ---------- forest ambience ---------- */
+/* The night forest has a life of its own: insects that fall silent when something comes near, gusts through
+   the trees, wood creaking, and now and then a far sound that does not belong (a horn, a rail, knocks). */
+const AMB = {
+  lv: 0, quiet: 0, gustT: 4, creakT: 6, farT: 20, lastFar: '',
+  init() {
+    this.bus = g(0, S.world);
+    this.bugs = [4300, 4950, 3800].map((f, i) => {
+      const o = AC.createOscillator(); o.frequency.value = f;
+      const am = g(0), lfo = AC.createOscillator(); lfo.type = 'square'; lfo.frequency.value = mr(20, 32);
+      lfo.connect(am.gain); o.connect(am);
+      const gate = g(0), pn = AC.createStereoPanner(); pn.pan.value = [-0.7, 0.6, 0.1][i];
+      am.connect(gate).connect(pn).connect(this.bus); o.start(); lfo.start();
+      return { gate, pn, t: mr(0, 2) };
+    });
+    this.bugBus = this.bus;
+    const src = loopNoise(S.pink);
+    this.gustBP = biq('bandpass', 800, 3); this.gust = g(0, S.world);
+    src.connect(this.gustBP).connect(this.gust);
+    this.leaves = g(0, S.world); src.connect(biq('highpass', 3200, 0.7)).connect(this.leaves);
+  },
+  at(dist, ref = 6) {
+    const a = Math.random() * Math.PI * 2, pn = panner(ref);
+    placePanner(pn, player.x + Math.sin(a) * dist, mr(1, 4), player.z + Math.cos(a) * dist);
+    pn.connect(S.world); pn.connect(g(0.7, S.rev)); setTimeout(() => pn.disconnect(), 9000);
+    return pn;
+  },
+  creak(t) {
+    const pn = this.at(mr(8, 24)), dur = mr(0.6, 1.5), f = mr(260, 520);
+    const s = AC.createBufferSource(); s.buffer = S.pink;
+    const bp = biq('bandpass', f, 28); bp.frequency.setValueAtTime(f, t); bp.frequency.linearRampToValueAtTime(f * mr(1.15, 1.5), t + dur);
+    const am = g(0), lfo = AC.createOscillator(); lfo.type = 'square';
+    lfo.frequency.setValueAtTime(mr(18, 30), t); lfo.frequency.linearRampToValueAtTime(mr(30, 55), t + dur);
+    lfo.connect(am.gain);
+    const gg = AC.createGain(); gg.gain.setValueAtTime(0.0001, t); gg.gain.linearRampToValueAtTime(mr(0.8, 1.4), t + dur * 0.3); gg.gain.linearRampToValueAtTime(0.0001, t + dur);
+    s.connect(bp).connect(am).connect(gg).connect(pn);
+    s.start(t, Math.random() * 3); s.stop(t + dur + 0.05); lfo.start(t); lfo.stop(t + dur + 0.05);
+  },
+  far(t, force) {
+    const kinds = ['horn', 'rail', 'knock', 'fall', 'horn'].filter(k => k !== this.lastFar);
+    const k = force || kinds[Math.floor(Math.random() * kinds.length)]; this.lastFar = k;
+    if (k === 'horn') {
+      /* the train that left, very far off */
+      const pn = this.at(mr(110, 150), 40), lp = biq('lowpass', 700, 0.7), gg = AC.createGain(), dur = mr(2.2, 3.4);
+      gg.gain.setValueAtTime(0.0001, t); gg.gain.linearRampToValueAtTime(0.22, t + 0.5); gg.gain.setValueAtTime(0.22, t + dur - 0.6); gg.gain.linearRampToValueAtTime(0.0001, t + dur);
+      for (const f of [311, 370]) { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * 0.97, t + dur); o.connect(lp); o.start(t); o.stop(t + dur + 0.05); }
+      lp.connect(gg).connect(pn);
+    } else if (k === 'rail') {
+      /* a rail rings, as if something walked on the line */
+      const pn = this.at(mr(50, 80), 20);
+      for (const [f, a, d] of [[523, 1, 2.4], [1307, 0.5, 1.6], [2213, 0.3, 1.0], [3010, 0.15, 0.6]]) {
+        const o = AC.createOscillator(); o.frequency.value = f * mr(0.98, 1.02); const gg = AC.createGain(); env(t, gg, 0.08 * a, 0.003, d);
+        o.connect(gg).connect(pn); o.start(t); o.stop(t + d + 0.1);
+      }
+      burst(t, { dur: 0.04, amp: 0.3, freq: 1800, Q: 2, dest: pn });
+    } else if (k === 'knock') {
+      /* three knocks on wood, somewhere behind */
+      const a = player.yaw + mr(-0.6, 0.6), dd = mr(26, 40), pn = panner(10);
+      placePanner(pn, player.x + Math.sin(a) * dd, 1.5, player.z + Math.cos(a) * dd); pn.connect(S.world); pn.connect(g(0.8, S.rev)); setTimeout(() => pn.disconnect(), 6000);
+      const n = Math.random() < 0.3 ? 2 : 3;
+      for (let i = 0; i < n; i++) { const tt = t + i * mr(0.38, 0.5); thump(tt, 0.6, mr(140, 170), pn, 0.09); burst(tt, { dur: 0.05, amp: 0.25, freq: 700, Q: 2, dest: pn }); }
+    } else {
+      /* a branch gives way and falls */
+      const pn = this.at(mr(35, 60), 15);
+      twig(t, pn, 0.6); twig(t + mr(0.2, 0.4), pn, 0.5);
+      burst(t + 0.7, { dur: 1.4, amp: 0.5, type: 'lowpass', freq: 380, buf: S.brown, dest: pn, attack: 0.02 });
+      thump(t + 0.72, 0.6, 50, pn, 0.5);
+    }
+  },
+  update(dt) {
+    const t = AC.currentTime, forest = state === 'tristesse' || state === 'final' || state === 'fuite' || state === 'tristesseIntro';
+    const threat = Math.max(W.presence || 0, W.danger || 0, state === 'final' ? 0.4 : 0);
+    /* the insects stop the moment something is near and only come back slowly */
+    this.quiet = threat > this.quiet ? damp(this.quiet, threat, 6, dt) : damp(this.quiet, threat, 0.25, dt);
+    const rain = WX.rain;
+    const want = forest && !W.memory && !A.kind ? 1 : 0;
+    this.lv = damp(this.lv, want, 0.6, dt);
+    setG(this.bus, 0.016 * this.lv * (1 - smooth(0.08, 0.45, this.quiet)) * (1 - 0.7 * rain) * (W.inBooth ? 0.4 : 1), 0.25);
+    for (const b of this.bugs) {
+      b.t -= dt;
+      if (b.t <= 0) {
+        /* a short run of chirps, then rest */
+        const n = 2 + Math.floor(Math.random() * 5), per = mr(0.16, 0.3);
+        for (let i = 0; i < n; i++) { const tt = t + i * per; b.gate.gain.setTargetAtTime(mr(0.6, 1), tt, 0.01); b.gate.gain.setTargetAtTime(0, tt + per * 0.45, 0.015); }
+        b.t = n * per + mr(0.4, 3.5);
+      }
+    }
+    if (this.lv < 0.05) { setG(this.gust, 0, 1); setG(this.leaves, 0, 1); return; }
+    this.gustT -= dt;
+    if (this.gustT <= 0) {
+      const up = mr(1.5, 3), down = mr(2.5, 5), a = mr(0.03, 0.07) * (1 + rain) * this.lv;
+      this.gust.gain.setTargetAtTime(a, t, up / 3); this.gust.gain.setTargetAtTime(0.004 * this.lv, t + up, down / 3);
+      this.leaves.gain.setTargetAtTime(a * 0.35, t + 0.3, up / 3); this.leaves.gain.setTargetAtTime(0, t + up, down / 3);
+      this.gustBP.frequency.setTargetAtTime(mr(500, 1400), t, up);
+      this.gustT = up + down + mr(2, 9);
+    }
+    const play = state !== 'fuite' && !busy;
+    this.creakT -= dt;
+    if (this.creakT <= 0) { if (play) this.creak(t); this.creakT = mr(7, 18); }
+    this.farT -= dt;
+    if (this.farT <= 0) {
+      if (play && threat < 0.2) this.far(t);
+      this.farT = mr(28, 60);
+    }
+  },
+};
 /* ---------- music ---------- */
 /* One tempo clock for the whole score. Each sequence picks a cue; layers fade in and out with the game state,
    and the heart is played by the clock so it always lands on the beat. Key of A minor, lullaby "Lou" as the theme. */
 const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
 const PROG = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [52, 56, 59]];
+const PROG_B = [[57, 60, 64], [55, 59, 62], [53, 57, 60], [52, 56, 59], [50, 53, 57], [53, 57, 60], [52, 55, 59], [52, 56, 59]];
 const LOU = [[69, 1], [72, 1], [76, 2], [74, 1], [72, 1], [71, 2], [69, 1], [71, 1], [72, 1], [67, 1], [69, 4]];
 const CUES = {
   silence: { bpm: 60, layers: {} },
   prologue: { bpm: 66, layers: { box: 1, pad: 0.6 } },
   train: { bpm: 104, heart: 2, layers: { train: 1, bass: 0.9, strings: 0.3 } },
   deni: { bpm: 'heart', heart: 1, layers: { pad: 0.4, piano: 0.8 } },
-  fuite: { bpm: 'heart', heart: 1, layers: { pad: 0.4, bass: 0.6 } },
+  fuite: { bpm: 'heart', heart: 1, prog: PROG_B, layers: { pad: 0.4, bass: 0.6 } },
   interlude: { bpm: 60, layers: { clock: 1, piano: 0.7, pad: 0.25 } },
   carte: { bpm: 66, layers: { box: 0.8, pad: 0.5 } },
-  tristesse: { bpm: 'heart', heart: 1, layers: { pad: 0.4, bass: 0.4 } },
+  tristesse: { bpm: 'heart', heart: 1, prog: PROG_B, rests: true, layers: { pad: 0.4, bass: 0.4 } },
   final: { bpm: 'heart', heart: 2, layers: { perc: 1, bass: 1, strings: 0.6, pad: 0.3 } },
   end: { bpm: 60, layers: { box: 1, pad: 0.8, piano: 0.5 } },
 };
 const MUS = {
   cueName: 'silence', cue: CUES.silence, bpm: 60, step: 0, next: 0, running: false,
-  lv: { box: 0, pad: 0, piano: 0, bass: 0, strings: 0, perc: 0, train: 0, clock: 0 },
-  tg: { box: 0, pad: 0, piano: 0, bass: 0, strings: 0, perc: 0, train: 0, clock: 0 },
-  mod: { box: 0, pad: 0, piano: 0, bass: 0, strings: 0, perc: 0 },
+  lv: { box: 0, pad: 0, piano: 0, bass: 0, strings: 0, perc: 0, train: 0, clock: 0, drone: 0 },
+  tg: { box: 0, pad: 0, piano: 0, bass: 0, strings: 0, perc: 0, train: 0, clock: 0, drone: 0 },
+  mod: { box: 0, pad: 0, piano: 0, bass: 0, strings: 0, perc: 0, drone: 0 },
   themeIdx: 0,
   set(name, { hard = false } = {}) {
     if (!AC) return;
@@ -881,6 +1092,7 @@ const MUS = {
     const want = this.cueName === 'final' ? lerp(118, 72, W.calm || 0) : this.cue.bpm === 'heart' ? clamp(H.bpm, 54, 140) : this.bpmTarget;
     this.bpm = damp(this.bpm, want, 1.2, dt);
     const now = AC.currentTime;
+    this.updateDrone(now);
     if (this.next < now - 0.2) this.next = now + 0.02;
     while (this.next < now + 0.12) {
       this.play(this.step, this.next);
@@ -888,16 +1100,32 @@ const MUS = {
       this.step++;
     }
   },
+  /* A low bowed drone under the tension: two detuned saws whose filter wanders, following the chord root. */
+  updateDrone(now) {
+    if (!this.dr) {
+      const lp = biq('lowpass', 300, 2.5), gg = g(0, S.music); lp.connect(gg);
+      const os = [-9, 8, 1200].map(det => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.detune.value = det; o.frequency.value = 55; o.connect(det > 100 ? g(0.25, lp) : lp); o.start(); return o; });
+      this.dr = { lp, gg, os, w: 0 };
+    }
+    const d = this.dr, lv = this.lv.drone;
+    d.gg.gain.setTargetAtTime(0.05 * lv, now, 0.8);
+    if (lv < 0.01) return;
+    d.w = clamp(d.w + mr(-0.04, 0.04), 0, 1);
+    d.lp.frequency.setTargetAtTime(180 + 520 * d.w + 300 * lv, now, 1.5);
+  },
   play(s, t) {
     const L = this.lv, sib = s % 16, beat = Math.floor(s / 4), bar = Math.floor(s / 16);
-    const chord = PROG[bar % 4], root = chord[0];
+    const prog = this.cue.prog || PROG, chord = prog[bar % prog.length], root = chord[0];
     const bl = this.beatLen();
+    if (sib === 0 && this.dr) for (const o of this.dr.os) o.frequency.setTargetAtTime(mtof(root - 24), t, 0.6);
+    /* in the calm of the forest the score breathes: four bars out of twelve are left to the night */
+    const rest = this.cue.rests && D.phase === 'relax' && !W.memory && bar % 12 >= 8;
     if (this.cue.heart && H.on && sib % 4 === 0 && (beat % this.cue.heart === 0)) {
       heartbeat(t, H.amp);
       H.beats.push(t); if (H.beats.length > 6) H.beats.shift();
     }
-    if (L.pad > 0.02 && sib === 0) padChord(t, chord, bl * 4 * 1.05, 0.055 * L.pad);
-    if (L.bass > 0.02) {
+    if (L.pad > 0.02 && sib === 0 && !rest) padChord(t, chord, bl * 4 * 1.05, 0.055 * L.pad);
+    if (L.bass > 0.02 && !rest) {
       const busy = L.bass > 0.8 && this.cueName === 'final';
       if (busy ? sib % 2 === 0 : (sib === 0 || sib === 8)) bassNote(t, root - 12, bl * (busy ? 0.45 : 1.6), 0.11 * L.bass);
     }
@@ -913,11 +1141,15 @@ const MUS = {
     }
     if (L.clock > 0.02 && sib % 4 === 0) burst(t, { dur: 0.025, amp: (sib === 0 ? 0.1 : 0.06) * L.clock, type: 'bandpass', freq: sib === 0 ? 1500 : 1900, Q: 3, dest: S.music });
     if (L.piano > 0.02 && sib === 0 && Math.random() < 0.8) piano(t, chord[Math.floor(Math.random() * 3)] - (Math.random() < 0.5 ? 12 : 0), 0.09 * L.piano);
+    /* now and then the piano remembers a few notes of the lullaby, an octave down */
+    if (L.piano > 0.02 && sib === 8 && Math.random() < 0.25) piano(t, this.nextThemeNote() - 12, 0.06 * L.piano);
     if (L.box > 0.02) {
       if (sib % 4 === 0) {
         if (!this.boxRem || this.boxRem <= 0) {
           const [m, d] = LOU[this.themeIdx % LOU.length]; this.themeIdx++;
-          musicBox(t, m, 0.13 * L.box, S.music);
+          /* under threat the lullaby goes out of tune and loses notes, like a box winding down */
+          const sour = (this.cueName === 'tristesse' || this.cueName === 'final') && D.phase !== 'relax' && !W.memory;
+          if (!sour || Math.random() > 0.2) musicBox(t, m, 0.13 * L.box, S.music, sour ? mr(-40, 40) : 0);
           this.boxRem = d;
         }
         this.boxRem--;
@@ -925,8 +1157,8 @@ const MUS = {
     }
   },
 };
-function musicBox(t, m, amp, dest = S.music) {
-  const f = mtof(m);
+function musicBox(t, m, amp, dest = S.music, cents = 0) {
+  const f = mtof(m) * Math.pow(2, cents / 1200);
   for (const [r, a, d] of [[1, 1, 1.8], [2, 0.25, 0.9], [3, 0.06, 0.5]]) {
     const o = AC.createOscillator(); o.frequency.value = f * r;
     const gg = AC.createGain(); env(t, gg, amp * a, 0.004, d);
@@ -4192,8 +4424,8 @@ function perceives(e, d) {
 function screech(e) {
   if (!AC) return;
   placePanner(S.gPan, e.x, 1, e.z);
-  burst(AC.currentTime, { dur: 0.5, amp: 0.35, freq: e.kind === 'blob' ? 1700 : 900, Q: 4, dest: S.gPan, attack: 0.02 });
-  rasp(AC.currentTime + 0.05, S.gPan);
+  shriek(AC.currentTime, S.gPan, e.kind);
+  e.vx = mr(0.8, 1.4);
 }
 /* steer around trunks and rocks: probe ahead and bend the heading away from what is in the way */
 function avoidDir(x, z, mx, mz, rad) {
@@ -4296,9 +4528,9 @@ function updateSwarm(dt) {
         if (e.kind !== 'crawler') sp *= (0.5 + 1.1 * Math.pow(0.5 + 0.5 * Math.sin(gt * 7 + e.phase * 3), 3)) / 0.84;
         e.snarl = (e.snarl ?? mr(0.3, 1)) - dt;
         if (e.snarl <= 0 && AC) {
-          e.snarl = mr(0.9, 1.9);
+          e.snarl = mr(3, 6);
           placePanner(S.gPan, e.x, 1, e.z);
-          burst(AC.currentTime, { dur: mr(0.25, 0.45), amp: 0.3, freq: e.kind === 'crawler' ? 650 : mr(1100, 1900), Q: 5, dest: S.gPan, attack: 0.01 });
+          burst(AC.currentTime, { dur: mr(0.15, 0.4), amp: mr(0.12, 0.25), freq: e.kind === 'crawler' ? mr(500, 800) : mr(900, 1900), Q: mr(3, 7), dest: S.gPan, attack: 0.01 });
         }
         /* in sight and still at a distance, it skips ahead in a smear of ash */
         e.blink = (e.blink ?? mr(1.5, 3)) - dt;
@@ -4629,13 +4861,12 @@ function updateAudio(dt) {
     const near = tenseMix ? SWARM.filter(e => e.active && !e.dying).map(e => ({ e, d: Math.hypot(e.x - player.x, e.z - player.z) })).sort((a, b) => a.d - b.d) : [];
     S.mv.forEach((v, i) => {
       const it = near[i];
-      if (!it || it.d > 40) { setG(v.breath, 0, 0.3); setG(v.hiss, 0, 0.2); v.wh.update(dt, 0); return; }
-      /* unaware they are almost silent; the voice only swells once they have seen you */
+      if (!it || it.d > 40) { v.wh.update(dt, 0); return; }
+      /* unaware they are almost silent; the voice only comes once they have seen you */
       const e = it.e, ch = e.st === 'chase' ? 1 : 0, al = e.st === 'alert' ? 1 : 0;
       placePanner(v.pn, e.x, e.kind === 'crawler' ? 0.4 : 1.3, e.z);
-      setG(v.breath, (0.03 + 0.9 * ch + 0.4 * al + 0.22 * (1 - smooth(4, 16, it.d)) * (1 - ch) * (1 - al)) * e.op, ch || al ? 0.06 : 0.5);
-      setG(v.hiss, (0.3 * ch + 0.08 * al) * e.op, 0.1);
-      v.wh.update(dt, (0.01 + 0.25 * al + 0.55 * ch) * e.op);
+      voxSwarm(e, it.d, dt, v.pn);
+      v.wh.update(dt, e.kind === 'echo' ? (0.05 + 0.3 * al + 0.6 * ch) * e.op : 0);
     });
   }
   W.whisper = Math.max(0, W.whisper);
@@ -4652,27 +4883,29 @@ function updateAudio(dt) {
   for (const k in MUS.mod) MUS.mod[k] = 0;
   if (state === 'fuite') {
     MUS.mod.strings = smooth(0.3, 1, W.dark) * 0.8 * (1 - calm);
+    MUS.mod.drone = smooth(0.2, 0.9, W.dark) * 0.8 * (1 - calm);
     MUS.mod.perc = smooth(0.45, 0.9, W.dark) * 0.6 * (1 - calm);
     MUS.mod.box = calm * 0.9; MUS.mod.pad = calm * 0.4;
   } else if (tense) {
     const ph = D.phase;
     MUS.mod.strings = ((ph === 'build' ? 0.15 + 0.5 * D.build : ph === 'peak' ? 0.9 : 0) + (D.tele ? 0.35 : 0)) * (1 - calm) + (A.kind === 'watch' ? 0.3 : 0);
     MUS.mod.bass = (ph === 'peak' ? 0.6 : ph === 'build' ? 0.35 * D.build : 0) * (1 - calm);
+    MUS.mod.drone = (ph === 'peak' ? 0.9 : ph === 'build' ? 0.25 + 0.6 * D.build : ph === 'fade' ? 0.3 : 0) * (1 - calm) * (W.memory ? 0 : 1) + 0.5 * (W.presence || 0);
     MUS.mod.perc = state === 'final' ? -0.8 * calm - (ph === 'relax' ? 0.6 : 0) : (ph === 'peak' ? 0.7 : 0) * (1 - calm);
     MUS.mod.box = Math.max(calm * 0.9, W.memory ? 1 : 0, ph === 'relax' ? 0.45 : 0);
     MUS.mod.pad = calm * 0.5 + (W.memory ? 0.4 : 0) + (ph === 'relax' ? 0.3 : 0);
   } else if (state === 'deni') {
     MUS.mod.strings = (W.deniPassivity || 0) * 0.7;
+    MUS.mod.drone = smooth(0.3, 1, W.deniPassivity || 0) * 0.7;
     MUS.mod.piano = -(W.deniPassivity || 0) * 0.6;
   }
   MUS.update(dt);
   if (C.active && C.gp.visible && !C.jump) {
     placePanner(S.cPan, C.x, 3, C.z);
-    const aware = C.mode === 'hunt' ? 1 : C.mode === 'alert' ? 0.6 : C.mode === 'search' ? 0.25 : 0.06;
-    const vol = C.freeze ? 0 : aware * C.op;
-    setG(S.cGrowl, vol * 0.32, aware > 0.5 ? 0.08 : 0.6); setG(S.cBreath, vol * 0.85, aware > 0.5 ? 0.08 : 0.6);
-    S.cWhisp.update(dt, C.freeze ? 0 : aware * C.op);
-  } else { setG(S.cGrowl, 0, 0.5); setG(S.cBreath, 0, 0.5); S.cWhisp.update(dt, 0); }
+    voxTall(dt, Math.hypot(C.x - player.x, C.z - player.z));
+    S.cWhisp.update(dt, C.freeze ? 0 : (C.mode === 'hunt' ? 0.45 : C.mode === 'alert' ? 0.2 : 0) * C.op);
+  } else S.cWhisp.update(dt, 0);
+  AMB.update(dt);
   if (W.wagonMoving && (state === 'deni' || state === 'intro')) {
     W.clackAcc -= dt; if (W.clackAcc <= 0 && state === 'deni') { clack(MUS.quant(now, 4), 0.1); W.clackAcc = 4 * MUS.beatLen(); }
   }
@@ -4983,7 +5216,68 @@ $('start').addEventListener('click', async () => {
 });
 $('again').addEventListener('click', () => location.reload());
 
-window.__rh = { STATION, handcar, CFG, WX, RUN_SEED, openMap, frame: t => frame(t), huts, oddities, ODD, girl, SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, STR, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
+/* Sound check page (?sons): every creature, forest and music sound on its own button, to judge them by ear. */
+if (/[?&]sons\b/.test(location.search)) {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;inset:0;z-index:99;background:#050606;color:#eeeae0;font:15px system-ui;padding:16px;overflow:auto';
+  box.innerHTML = '<h2 style="margin:0 0 6px">Banc d’écoute</h2><p style="opacity:.7;margin:0 0 12px">Casque conseillé. Les sons sont placés à 6 m devant, sauf les lointains.</p>';
+  document.body.appendChild(box);
+  let pn = null, mus = null;
+  const ready = () => {
+    if (!AC) { initAudio(); AC.resume(); pn = panner(2.5); placePanner(pn, 0, 1.3, -6); pn.connect(S.world); pn.connect(g(0.22, S.rev)); placePanner(S.cPan, 0, 3, -9); }
+    updateListener(); return AC.currentTime + 0.05;
+  };
+  const f = () => mr(360, 520);
+  const groups = {
+    'Monstres (petits)': {
+      'Poursuite : halètements': t => { let tt = t; for (let i = 0; i < 3; i++) { const v = f(); vBreath(tt, pn, true, 0.3, v, 0.8, 0.4); tt += 0.36; vBreath(tt, pn, false, 0.4, v * 0.9, 1.1, 0.7); tt += 0.45; } },
+      'Grognement': t => groan(t, pn, mr(70, 110), mr(0.8, 1.5), 0.25),
+      'Renifle (alerté)': t => sniff(t, pn, 0.45),
+      'Cliquetis (rampant)': t => chitter(t, pn, 0.8),
+      'Cri du rampant': t => shriek(t, pn, 'crawler'),
+      'Brindille (pas vu)': t => twig(t, pn, 0.3),
+      'Cri : il te repère': t => shriek(t, pn, 'blob'),
+      'Ancien râle (pour comparer)': t => {
+        const gg = g(0, pn), bm = g(0.9); const src = loopNoise(S.brown); src.connect(biq('bandpass', 400, 1.4)).connect(bm).connect(gg);
+        const lfo = AC.createOscillator(); lfo.frequency.value = 0.35; lfo.connect(g(0.85)).connect(bm.gain); lfo.start();
+        gg.gain.setTargetAtTime(0.9, t, 0.1); gg.gain.setTargetAtTime(0, t + 6, 0.2); setTimeout(() => { src.stop(); lfo.stop(); }, 7500);
+      },
+    },
+    'Le grand': {
+      'Chasse : souffle + grognement': t => { vBreath(t, S.cPan, true, 0.8, 290, 0.6, 0.5); vBreath(t + 0.95, S.cPan, false, 1.1, 260, 0.8, 0.8); groan(t + 2.2, S.cPan, mr(46, 62), 1.8, 0.3); },
+      'Fouille : renifle': t => sniff(t, S.cPan, 0.35),
+      'Rôde : pas lourd': t => heavyStep(t, 0.25, S.cPan),
+    },
+    'Forêt': {
+      'Insectes (5 s, puis ils se taisent)': () => { state = 'tristesse'; AMB.lv = 1; W.presence = 0; setTimeout(() => { W.presence = 1; }, 5000); setTimeout(() => { state = 'title'; W.presence = 0; }, 9000); },
+      'Rafale de vent': () => { state = 'tristesse'; AMB.lv = 1; AMB.gustT = 0; setTimeout(() => { state = 'title'; }, 9000); },
+      'Bois qui grince': t => AMB.creak(t),
+      'Lointain : le train': t => AMB.far(t, 'horn'),
+      'Lointain : un rail sonne': t => AMB.far(t, 'rail'),
+      'Lointain : trois coups': t => AMB.far(t, 'knock'),
+      'Lointain : branche qui tombe': t => AMB.far(t, 'fall'),
+    },
+    'Musique': {
+      'Forêt, calme (avec silences)': () => { state = 'tristesse'; D.phase = 'relax'; MUS.set('tristesse'); mus = 'calm'; },
+      'Forêt, la menace monte': () => { state = 'tristesse'; D.phase = 'build'; D.build = 0.8; MUS.set('tristesse'); mus = 'build'; },
+      'Forêt, pic': () => { state = 'tristesse'; D.phase = 'peak'; MUS.set('tristesse'); mus = 'peak'; },
+      'Arrêter la musique': () => { MUS.set('silence'); state = 'title'; mus = null; },
+    },
+  };
+  for (const [name, items] of Object.entries(groups)) {
+    const h = document.createElement('h3'); h.textContent = name; h.style.cssText = 'margin:14px 0 6px;font-weight:600'; box.appendChild(h);
+    for (const [label, fn] of Object.entries(items)) {
+      const b = document.createElement('button'); b.textContent = label;
+      b.style.cssText = 'margin:0 8px 8px 0;padding:10px 14px;background:#111;color:#eeeae0;border:1px solid #eeeae0aa;border-radius:4px;font:inherit;cursor:pointer';
+      b.onclick = () => fn(ready()); box.appendChild(b);
+    }
+  }
+  /* keeps the music clock, the heart and the forest running while the page is open */
+  let last = performance.now();
+  setInterval(() => { const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now; if (AC) { if (mus) { H.on = true; H.bpm = mus === 'peak' ? 130 : mus === 'build' ? 100 : 70; H.amp = 0.3; } else H.on = false; updateAudio(dt); } }, 40);
+}
+
+window.__rh = { STATION, handcar, CFG, WX, AMB, VOX, RUN_SEED, openMap, frame: t => frame(t), huts, oddities, ODD, girl, SWARM, SW, FL, spawnEnemy, RELAY, REFUGES, density, relayNext, sites, heart, giants, GI, W, C, H, A, D, compass, STR, MUS, audio: () => ({ AC, S }), player, fx, gtime: () => gt, freeze: v => { paused = v; }, get state() { return state; }, pockets, frags, booths, quay1 };
 </script>
 
 </body>
