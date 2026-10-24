@@ -224,7 +224,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v26 · 24.10.2026</p>
+  <p class="ver" id="ver">v27 · 24.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -313,7 +313,7 @@ const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: 
 const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 /* ---------- languages ---------- */
 /* Texts come from the "Raw Heart — Textes du jeu" doc (one tab per language), keyed by the doc's IDs. */
-const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","intro.left":"Non… Attendez-moi !","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lumière, et elle s’éclaire quand je suis sur le bon chemin.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","hide.cine":"Mes mains serrent le cœur contre moi. Sa lumière s’étouffe.","hide.learn":"Il ne m’a pas vu. Serré contre moi, le cœur ne les attire plus.","hide.urge":"Le serrer contre moi. Vite.","deni.warn":"Le noir monte. Si je reste assis, il m’avale.","deni.again":"Encore ce noir. Me lever. Maintenant.","fuite.dark":"Le noir me rattrape. La lumière, vite.","fuite.swallowed":"Trop longtemps dans le noir.","train.locked":"Les portes restent fermées. Pas sans ses souvenirs.","train.count":"Souvenirs {n} / 3","train.open":"Le train. Les portes sont ouvertes.","phone.prompt":"<kbd>E</kbd> décrocher","phone.line":"… Il n’y a personne ici. Personne.","chute.1":"Je tombe. Encore.","chute.2":"Toujours le même rêve.","chute.3":"Je me relève. Il le faut.","chute.4":"Elles sont plus loin maintenant.","chute.prompt":"<kbd>Espace</kbd> se relever","giant.lift":"La lumière me soulève. Mes pieds quittent le sol.","giant.beam":"Sa lumière fouille la forêt. Rester dans l’ombre des arbres, des cabines.","giant.spotted":"Sa lumière m’a trouvé. Ils arrivent. Tous.","shadows.1":"Des silhouettes, dans la brume. Elles marchent sans moi.","shadows.2":"Celle-là s’est arrêtée. Elle me regarde.","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Serrer","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.closeBtn":"Fermer","map.zoom":"pincer avec deux doigts pour zoomer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","intro.left":"No… Wait for me!","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the light, and it glows when I’m on the right path.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","hide.cine":"My hands press the heart against me. Its light chokes.","hide.learn":"It didn’t see me. Held close, the heart no longer draws them.","hide.urge":"Hold it close. Now.","deni.warn":"The dark is rising. If I stay seated, it swallows me.","deni.again":"That dark again. Stand up. Now.","fuite.dark":"The dark is catching up. The light, quick.","fuite.swallowed":"Too long in the dark.","train.locked":"The doors stay shut. Not without her memories.","train.count":"Memories {n} / 3","train.open":"The train. The doors are open.","phone.prompt":"<kbd>E</kbd> pick up","phone.line":"… There’s no one here. No one.","chute.1":"I’m falling. Again.","chute.2":"Always the same dream.","chute.3":"I get up. I have to.","chute.4":"They’re further away now.","chute.prompt":"<kbd>Space</kbd> get up","giant.lift":"The light lifts me. My feet leave the ground.","giant.beam":"Its light is searching the forest. Stay in the shadow of the trees, the booths.","giant.spotted":"Its light found me. They’re coming. All of them.","shadows.1":"Figures, in the mist. They walk on without me.","shadows.2":"That one stopped. It’s looking at me.","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Clutch","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.closeBtn":"Close","map.zoom":"pinch with two fingers to zoom","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
+const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","intro.left":"Non… Attendez-moi !","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lumière, et elle s’éclaire quand je suis sur le bon chemin.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","hide.cine":"Mes mains serrent le cœur contre moi. Sa lumière s’étouffe.","hide.learn":"Il ne m’a pas vu. Serré contre moi, le cœur ne les attire plus.","hide.urge":"Le serrer contre moi. Vite.","deni.warn":"Le noir monte. Si je reste assis, il m’avale.","deni.again":"Encore ce noir. Me lever. Maintenant.","fuite.dark":"Le noir me rattrape. La lumière, vite.","fuite.swallowed":"Trop longtemps dans le noir.","train.locked":"Les portes restent fermées. Pas sans ses souvenirs.","train.count":"Souvenirs {n} / 3","train.open":"Le train. Les portes sont ouvertes.","phone.prompt":"<kbd>E</kbd> décrocher","phone.line":"… Il n’y a personne ici. Personne.","light.next1":"Là-bas. Une autre lumière s’allume. Vite.","light.next":"Une autre lumière. Là-bas.","light.stay":"Il me cherche. Je ne peux pas rester là.","chute.1":"Je tombe. Encore.","chute.2":"Toujours le même rêve.","chute.3":"Je me relève. Il le faut.","chute.4":"Elles sont plus loin maintenant.","chute.prompt":"<kbd>Espace</kbd> se relever","giant.lift":"La lumière me soulève. Mes pieds quittent le sol.","giant.beam":"Sa lumière fouille la forêt. Rester dans l’ombre des arbres, des cabines.","giant.spotted":"Sa lumière m’a trouvé. Ils arrivent. Tous.","shadows.1":"Des silhouettes, dans la brume. Elles marchent sans moi.","shadows.2":"Celle-là s’est arrêtée. Elle me regarde.","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Serrer","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.closeBtn":"Fermer","map.zoom":"pincer avec deux doigts pour zoomer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","intro.left":"No… Wait for me!","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the light, and it glows when I’m on the right path.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","hide.cine":"My hands press the heart against me. Its light chokes.","hide.learn":"It didn’t see me. Held close, the heart no longer draws them.","hide.urge":"Hold it close. Now.","deni.warn":"The dark is rising. If I stay seated, it swallows me.","deni.again":"That dark again. Stand up. Now.","fuite.dark":"The dark is catching up. The light, quick.","fuite.swallowed":"Too long in the dark.","train.locked":"The doors stay shut. Not without her memories.","train.count":"Memories {n} / 3","train.open":"The train. The doors are open.","phone.prompt":"<kbd>E</kbd> pick up","phone.line":"… There’s no one here. No one.","light.next1":"Over there. Another light is coming on. Quick.","light.next":"Another light. Over there.","light.stay":"It’s looking for me. I can’t stay here.","chute.1":"I’m falling. Again.","chute.2":"Always the same dream.","chute.3":"I get up. I have to.","chute.4":"They’re further away now.","chute.prompt":"<kbd>Space</kbd> get up","giant.lift":"The light lifts me. My feet leave the ground.","giant.beam":"Its light is searching the forest. Stay in the shadow of the trees, the booths.","giant.spotted":"Its light found me. They’re coming. All of them.","shadows.1":"Figures, in the mist. They walk on without me.","shadows.2":"That one stopped. It’s looking at me.","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Clutch","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.closeBtn":"Close","map.zoom":"pinch with two fingers to zoom","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
 const LANGS = [['fr', 'Français'], ['en', 'English']];
 const VLANG = { fr: 'fr-FR', en: 'en-US', de: 'de-DE', es: 'es-ES', it: 'it-IT', pt: 'pt-BR', pl: 'pl-PL', ru: 'ru-RU', ja: 'ja-JP', ko: 'ko-KR', zh: 'zh-CN', tr: 'tr-TR' };
 let LANG = (() => {
@@ -745,10 +745,15 @@ function initAudio() {
   S.whisp = new Whispers(S.world, IOS ? 2 : 4, true, IOS ? 4.5 : 3);
 
   S.cPan = panner(4); S.cPan.connect(S.world); S.cPan.connect(g(0.35, S.rev));
+  S.cLP = biq('lowpass', 12000, 0.7); S.cLP.connect(S.cPan);
   S.cWhisp = new Whispers(S.cPan, IOS ? 2 : 3, false, IOS ? 5 : 4);
   S.chimePan = panner(5); S.chimePan.connect(S.world); S.chimePan.connect(g(0.6, S.rev));
   S.gPan = panner(2); S.gPan.connect(S.world); S.gPan.connect(g(0.3, S.rev));
   S.humPan = panner(6); S.humPan.connect(S.world); S.humPan.connect(g(0.9, S.rev));
+  /* the buzz of a failing lamp, heard from the lamp itself */
+  S.buzzPan = panner(4); S.buzzPan.connect(S.world);
+  S.buzz = g(0, S.buzzPan);
+  for (const [f, a] of [[100, 1], [150, 0.5], [200, 0.3]]) { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(biq('lowpass', 700)).connect(g(a, S.buzz)); o.start(); }
   /* breath: rises as stamina runs out, distinct from the heartbeat that carries health */
   S.breath = g(0, S.master); S.breathM = g(0.9);
   loopNoise(S.brown).connect(biq('bandpass', 950, 0.9)).connect(S.breathM).connect(S.breath);
@@ -756,7 +761,9 @@ function initAudio() {
   S.mv = [0, 1, 2, 3, 4, 5].map(() => {
     const pn = new PannerNode(AC, { panningModel: IOS ? 'equalpower' : 'HRTF', distanceModel: 'inverse', refDistance: 2.5, maxDistance: 60, rolloffFactor: 1.35 });
     pn.connect(S.world); pn.connect(g(0.22, S.rev));
-    return { pn, wh: new Whispers(pn, 1, false, 3.4) };
+    /* behind the listener or far off, the voice goes duller: the ear can tell front from back */
+    const lp = biq('lowpass', 12000, 0.7); lp.connect(pn);
+    return { pn, lp, wh: new Whispers(pn, 1, false, 3.4) };
   });
   S.shape = distCurve(5);
   AMB.init();
@@ -813,7 +820,7 @@ function scream(t) {
   o.start(t); o.stop(t + 1.4);
 }
 function boom(t) { thump(t, 0.8, 36, S.world, 1.0); burst(t, { dur: 1.1, amp: 0.4, type: 'lowpass', freq: 140, buf: S.brown }); }
-function rasp(t, dest = S.cPan) { vBreath(t, dest, Math.random() < 0.4, mr(0.7, 1.3), mr(330, 560), 0.45, mr(0.3, 0.8)); }
+function rasp(t, dest = S.cLP) { vBreath(t, dest, Math.random() < 0.4, mr(0.7, 1.3), mr(330, 560), 0.45, mr(0.3, 0.8)); }
 
 /* ---------- creature voices ---------- */
 /* Each sound is a short gesture with its own shape, never a loop: a breath in or out with a wet rattle,
@@ -891,18 +898,18 @@ function voxSwarm(e, d, dt, pn) {
     }
     if (cr) tt += chitter(tt, pn, 0.8);
     else if (Math.random() < 0.3 && voxOk(t, 'groanAt', 3.5)) { groan(tt, pn, mr(70, 110), mr(0.8, 1.5), 0.25); tt += 1.2; }
-    e.vx = tt - t + mr(0.5, 2.4);
+    e.vx = tt - t + mr(1.8, 4.5);
   } else if (e.st === 'alert') {
-    e.vx = (cr ? chitter(t, pn, 0.6) : sniff(t, pn, 0.45)) + mr(1.2, 2.6);
+    e.vx = (cr ? chitter(t, pn, 0.6) : sniff(t, pn, 0.45)) + mr(2.5, 5);
   } else {
     /* unaware: rare and quiet, a sign that something is there rather than a voice */
-    if (!voxOk(t, 'idleAt', 7)) { e.vx = mr(1, 3); return; }
+    if (!voxOk(t, 'idleAt', 12)) { e.vx = mr(2, 4); return; }
     const k = pickNot(cr ? ['chitter', 'twig'] : ['sniff', 'twig', 'breath', 'sniff']);
     if (k === 'chitter') chitter(t, pn, 0.4);
     else if (k === 'twig') twig(t, pn, 0.3);
     else if (k === 'sniff') sniff(t, pn, 0.16);
     else { vBreath(t, pn, true, mr(0.6, 0.9), f, 0.22, 0.2); vBreath(t + 0.9, pn, false, mr(0.8, 1.2), f * 0.85, 0.28, 0.5); }
-    e.vx = mr(8, 18);
+    e.vx = mr(14, 26);
   }
 }
 /* the tall one: deep and slow, it breathes in long pulls and groans only while it hunts */
@@ -910,18 +917,18 @@ function voxTall(dt, d) {
   if (C.freeze || C.op < 0.3 || d > 55) return;
   C.vx = (C.vx ?? mr(2, 6)) - dt;
   if (C.vx > 0) return;
-  const t = AC.currentTime, pn = S.cPan, m = C.mode;
+  const t = AC.currentTime, pn = S.cLP, m = C.mode;
   if (m === 'hunt' || m === 'booth') {
     vBreath(t, pn, true, mr(0.6, 0.9), mr(260, 320), 0.6, 0.5);
     vBreath(t + 0.95, pn, false, mr(0.9, 1.3), mr(230, 290), 0.8, 0.8);
-    if (Math.random() < 0.45) groan(t + 2.2, pn, mr(46, 62), mr(1.4, 2.2), 0.3);
-    C.vx = mr(3.2, 5.5);
+    if (Math.random() < 0.3) groan(t + 2.2, pn, mr(46, 62), mr(1.4, 2.2), 0.3);
+    C.vx = mr(5.5, 9);
   } else if (m === 'alert' || m === 'search') {
-    C.vx = sniff(t, pn, 0.35) + mr(1.8, 3.5);
+    C.vx = sniff(t, pn, 0.35) + mr(3.5, 6);
     if (Math.random() < 0.3) vBreath(t + 1, pn, false, 1.1, 280, 0.45, 0.6);
   } else {
     if (Math.random() < 0.5) heavyStep(t, 0.25, pn); else vBreath(t, pn, false, mr(1, 1.4), mr(250, 300), 0.3, 0.6);
-    C.vx = mr(9, 20);
+    C.vx = mr(14, 28);
   }
 }
 /* Tension hit: a low cluster swelling in, a sub drop and a quiet glass tone; nothing above 2 kHz but the glint. */
@@ -945,7 +952,9 @@ function heavyStep(t, amp, dest) {
 function hum(t, dest) { MUS.theme(t, dest, 0.1, 0.55); }
 function doorClose(t) { thump(t, 0.5, 85, S.world, 0.18); }
 function gasp(t) { burst(t, { dur: 0.45, amp: 0.1, freq: 1100, Q: 1.3, attack: 0.15 }); }
-function tick(t) { burst(t, { dur: 0.025, amp: 0.12, type: 'bandpass', freq: 2400, Q: 2 }); }
+function tick(t, dest = S.world) { burst(t, { dur: 0.025, amp: 0.12, type: 'bandpass', freq: 2400, Q: 2, dest }); }
+/* a one-shot panner at a point in the world, released once the sound is over */
+function spot(x, y, z, ref = 5) { const pn = panner(ref); placePanner(pn, x, y, z); pn.connect(S.world); pn.connect(g(0.3, S.rev)); setTimeout(() => pn.disconnect(), 2500); return pn; }
 
 function updateListener() {
   const L = AC.listener, p = camera.position;
@@ -1992,11 +2001,21 @@ function inLight(x, z, pad = 0) {
 
 /* Lights die. Staying in one starts a short countdown; it then flickers and goes out for good,
    while a lamp wakes farther on toward the next memory and the compass swings to it. */
+/* the lamp itself must read in the dark: pale cast iron that holds a little light, a base, a bracket, a lantern cage */
+const lampIron = new THREE.MeshLambertMaterial({ color: 0x8c867b, emissive: 0x24211c });
 const RELAY = [0, 1].map(() => {
   const gp = new THREE.Group(); gp.visible = false; scene.add(gp);
-  const pole = new THREE.Mesh(new THREE.BoxGeometry(0.2, 4.6, 0.2), M.wood); pole.position.y = 2.3; pole.rotation.z = 0.05; gp.add(pole);
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.14, 0.14), M.wood); arm.position.set(0.5, 4.5, 0); gp.add(arm);
-  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.2, 4), M.metal); cap.rotation.y = Math.PI / 4; cap.position.set(0.95, 4.3, 0); gp.add(cap);
+  const body = new THREE.Group(); gp.add(body);
+  const part = (geo, x, y, z) => { const m = new THREE.Mesh(geo, lampIron); m.position.set(x, y, z); body.add(m); return m; };
+  part(new THREE.CylinderGeometry(0.22, 0.3, 0.5, 8), 0, 0.25, 0);
+  part(new THREE.CylinderGeometry(0.09, 0.13, 4.3, 8), 0, 2.6, 0);
+  part(new THREE.BoxGeometry(1.15, 0.1, 0.1), 0.5, 4.55, 0);
+  part(new THREE.BoxGeometry(0.06, 0.5, 0.06), 0.2, 4.3, 0).rotation.z = -0.8;
+  part(new THREE.CylinderGeometry(0.03, 0.03, 0.22, 6), 0.95, 4.47, 0);
+  const cap = part(new THREE.ConeGeometry(0.28, 0.24, 4), 0.95, 4.33, 0); cap.rotation.y = Math.PI / 4;
+  for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) part(new THREE.BoxGeometry(0.035, 0.36, 0.035), 0.95 + cx * 0.15, 4.04, cz * 0.15);
+  part(new THREE.BoxGeometry(0.34, 0.05, 0.34), 0.95, 3.84, 0);
+  gp.userData.body = body;
   const bulb = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.3, 0.24), new THREE.MeshBasicMaterial({ color: 0xf0e4c8, fog: false })); bulb.position.set(0.95, 4.05, 0); gp.add(bulb);
   const glow = glowSprite(4.5, 0xefe2c4, 0); glow.position.copy(bulb.position); gp.add(glow);
   const halo = glowSprite(22, 0xc9c2b2, 0); halo.position.copy(bulb.position); gp.add(halo);
@@ -2086,7 +2105,7 @@ function updateOddPlaces(dt) {
     if (ch.t > 1.6) { ch.chair.rotation.y = Math.atan2(player.x - ch.x, player.z - ch.z); ch.lamp.set(1); ch.t = -1; if (AC) setG(S.hum, 0.03, 0.1); setTimeout(() => AC && setG(S.hum, 0, 1.5), 2500); }
   }
 }
-const dwellMax = () => [4, 3.5, 3, 2.6][Math.min(W.fragIndex, 3)];
+const dwellMax = () => [6, 5.5, 5, 4.5][Math.min(W.fragIndex, 3)];
 /* a memory's spot is dark until the player comes within reach, then lights up in a crackle and a flicker */
 function siteReveal(st, dt) {
   if (!st.seen && (state === 'tristesse' || state === 'final') && Math.hypot(player.x - st.x, player.z - st.z) < 24) { st.seen = true; st.ign = 1.2; spotCrackle(st.x, st.z); }
@@ -2103,7 +2122,7 @@ function lightVisual(r) {
 function lightOut(r) {
   if (r.booth) { r.booth.lit = false; r.booth.dead = true; }
   if (r.lamp) r.lamp.on = false;
-  if (AC) { const t = AC.currentTime; burst(t, { dur: 0.12, amp: 0.3, freq: 2600, Q: 2 }); thump(t, 0.45, 70, S.world, 0.3); setG(S.hum, 0, 0.05); }
+  if (AC) { const t = AC.currentTime, pn = spot(r.x, 3, r.z); burst(t, { dur: 0.12, amp: 0.3, freq: 2600, Q: 2, dest: pn }); thump(t, 0.45, 70, pn, 0.3); setG(S.buzz, 0, 0.05); }
   W.whisper += 0.3;
   setTimeout(relayNext, 900 + [800, 2500, 4500, 6500][Math.min(W.fragIndex, 3)]);
   setTimeout(() => { if (!W.relay && !inLight(player.x, player.z)) inner('warn.dark'); }, 2600);
@@ -2129,6 +2148,9 @@ function relayNext() {
   }
 }
 function placeRelay(l, x, z) {
+  /* the first few times, and now and then after, a voice points out that another light has come on */
+  W.relayCount = (W.relayCount || 0) + 1;
+  if (W.relayCount <= 3 || Math.random() < 0.25) setTimeout(() => { if (!busy) say(loc(W.relayCount <= 1 ? 'light.next1' : 'light.next'), 3, 'mono'); }, 500);
   Object.assign(l, { x, z, on: true, reached: false, k: 0, flk: 1, placedAt: gt, ign: 1.2 + 0.5 * Math.min(W.fragIndex, 3) });
   Object.assign(l.ref, { dead: false, dwell: 0, die: -1, flk: 1, warned: false, bp: 0 });
   l.gp.position.set(x - 0.95, groundH(x, z), z); l.gp.visible = true;
@@ -2150,7 +2172,7 @@ function updateLights(dt) {
     r.die += dt;
     const p = r.die / 1.1;
     r.flk = Math.random() < 0.3 + 0.6 * p ? mr(0, 0.1) : mr(0.6, 1);
-    if (AC && Math.random() < dt * 12) tick(AC.currentTime);
+    if (AC && Math.random() < dt * 12) tick(AC.currentTime, spot(r.x, 3, r.z));
     if (r.die > 1.1) { r.die = -1; r.dead = true; r.flk = 0; lightOut(r); }
     lightVisual(r);
   }
@@ -2162,26 +2184,37 @@ function updateLights(dt) {
   for (const r of REFUGES) {
     if (r.dead || r.die >= 0 || r.keep || !(r.lamp || r === here) || !r.on()) continue;
     if (r.site != null && !frags[r.site].taken) continue;
-    r.dwell += dt * (r === here ? 1 : 0.3);
+    r.dwell += dt * (r === here ? 1 : 0.16);
     const wp = smooth(0.4, 1, r.dwell / dwellMax());
     if (wp > 0 && !(r.crk > 0)) {
       /* about to go: it blinks on and off, faster and faster, ticking at each cut */
       r.bp = (r.bp || 0) + dt / lerp(0.75, 0.12, wp);
       const on = r.bp % 1 < 0.55;
-      if (!on && r.wasOn && AC && Math.hypot(r.x - player.x, r.z - player.z) < 30) tick(AC.currentTime);
+      if (!on && r.wasOn && AC && Math.hypot(r.x - player.x, r.z - player.z) < 30) tick(AC.currentTime, spot(r.x, 3, r.z));
       r.wasOn = on; r.flk = on ? 1 : 0.05; lightVisual(r);
       if (r === here) buzz = Math.max(buzz, wp);
-      if (r === here && !r.warned) { r.warned = true; inner('warn.light'); }
+      if (r === here && !r.warned) {
+        r.warned = true; inner('warn.light');
+        /* lingering in the light has a price: the tall one starts looking for him */
+        if (C.introduced && C.gone && !busy && !W.finalOn) {
+          spawnCreatureBehind(36, false); C.gone = false; C.goneT = 0; C.mode = 'search'; C.timer = 8; C.listenT = 1.5;
+          C.lastX = player.x; C.lastZ = player.z; C.tx = player.x; C.tz = player.z;
+          if (!W.stayWarned) { W.stayWarned = true; setTimeout(() => say(loc('light.stay'), 3.4, 'mono'), 900); }
+        }
+      }
     }
     if (r.dwell > dwellMax()) { r.die = 0; r.warned = false; }
   }
-  if (AC && (buzz > 0 || W.buzzing)) { setG(S.hum, 0.07 * buzz, 0.2); W.buzzing = buzz > 0; }
+  if (AC && (buzz > 0 || W.buzzing)) {
+    setG(S.buzz, 0.08 * buzz, 0.2); W.buzzing = buzz > 0;
+    if (here) placePanner(S.buzzPan, here.x, 3, here.z);
+  }
   for (const l of RELAY) {
     if (l.ign > 0) {
       /* lighting up: clean on-off blinks, each with a tick, so the new lamp is noticed */
       l.ign -= dt;
       const off = Math.floor(l.ign / 0.16) % 2 === 1;
-      if (off && !l.ioff && AC) tick(AC.currentTime);
+      if (off && !l.ioff && AC) tick(AC.currentTime, spot(l.x, 3, l.z));
       l.ioff = off; l.flk = off ? 0.04 : 1;
       if (l.ign <= 0) l.flk = 1;
     }
@@ -2504,6 +2537,7 @@ function stationInteract(dt) {
 /* wagon and rails get a pale drawn edge so the way out reads at a glance */
 rimLines(wagon, 30);
 rimLines(train.gp, 30);
+RELAY.forEach(l => rimLines(l.gp.userData.body, 30));
 scene.traverse(o => { if (o.isMesh && o.material === M.rail) o.add(new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 30), rimMat)); });
 
 /* the little girl */
@@ -3989,7 +4023,7 @@ function updateGirl(dt) {
       H.bpm = Math.min(170, H.bpm + 20);
     }
     if (girl.look > 0) girl.look -= dt;
-    else sp = lerp(0.9, 5.5, 1 - smooth(12, 22, gd));
+    else sp = lerp(0.8, 2.1, 1 - smooth(12, 22, gd));
     girl.x += girl.dx * sp * dt; girl.z += girl.dz * sp * dt;
     const lost = gd < 11;
     girl.op = damp(girl.op, girl.t < 13 && !lost ? 0.95 : 0, lost ? 3.5 : 1.6, dt);
@@ -3999,6 +4033,11 @@ function updateGirl(dt) {
   girl.walk = (girl.walk || 0) + dt * (0.6 + sp * 1.4);
   girl.mat.opacity = girl.op;
   girl.sprite.material.opacity = girl.op;
+  /* a drawn walk: each step lifts and rolls them a little, and they lean into the stride */
+  const stp = Math.sin(girl.walk * 3);
+  girl.sprite.position.y = 0.92 + (sp > 0 ? Math.abs(stp) * 0.05 : 0);
+  girl.sprite.material.rotation = sp > 0 ? stp * 0.035 : 0;
+  girl.sprite.scale.set(1.25 * (1 + (sp > 0 ? Math.abs(stp) * 0.015 : 0)), 1.85 * (1 - (sp > 0 ? Math.abs(stp) * 0.02 : 0)), 1);
   girl.halo.material.opacity = 0.32 * girl.op;
   girl.gp.visible = girl.op > 0.01;
   girl.gp.position.set(girl.x, (W.girlInTrain ? 1.02 : groundH(girl.x, girl.z)) + (sp > 0 ? Math.abs(Math.sin(girl.walk * 3)) * 0.03 : 0), girl.z);
@@ -4299,7 +4338,7 @@ function updateCreature(dt) {
     case 'hunt':
       C.tx = C.lastX; C.tz = C.lastZ; sp = C.huntSpeed * (d < 7 ? 1.45 : 1);
       C.roarT = (C.roarT ?? 0.5) - dt;
-      if (C.roarT <= 0 && AC) { C.roarT = mr(1.4, 2.6); rasp(AC.currentTime); burst(AC.currentTime, { dur: 0.6, amp: 0.4, type: 'lowpass', freq: 220, buf: S.brown, dest: S.cPan }); }
+      if (C.roarT <= 0 && AC) { C.roarT = mr(5, 9); rasp(AC.currentTime); burst(AC.currentTime, { dur: 0.6, amp: 0.4, type: 'lowpass', freq: 220, buf: S.brown, dest: S.cPan }); }
       C.blinkT = (C.blinkT ?? 2) - dt;
       if (C.blinkT <= 0 && detect && d > 8) {
         C.blinkT = mr(2, 3.6);
@@ -5102,6 +5141,12 @@ function updateFog(dt) {
   scene.background.copy(fog.color);
   fog.density = W.camO ? W.camO.fog : damp(fog.density, W.fogD * (P.uVol.value > 0 ? 0.55 : 1), 2, dt);
 }
+/* how open a sound is: full in front, muffled behind and with distance */
+function earLP(x, z, d) {
+  const fx2 = -Math.sin(player.yaw), fz2 = -Math.cos(player.yaw);
+  const front = ((x - player.x) * fx2 + (z - player.z) * fz2) / (d || 1);
+  return lerp(1400, 12000, smooth(-0.6, 0.5, front)) * lerp(1, 0.45, smooth(10, 35, d));
+}
 function updateAudio(dt) {
   updateListener();
   const tenseMix = state === 'tristesse' || state === 'final';
@@ -5120,7 +5165,8 @@ function updateAudio(dt) {
       /* unaware they are almost silent; the voice only comes once they have seen you */
       const e = it.e, ch = e.st === 'chase' ? 1 : 0, al = e.st === 'alert' ? 1 : 0;
       placePanner(v.pn, e.x, e.kind === 'crawler' ? 0.4 : 1.3, e.z);
-      voxSwarm(e, it.d, dt, v.pn);
+      v.lp.frequency.setTargetAtTime(earLP(e.x, e.z, it.d), AC.currentTime, 0.15);
+      voxSwarm(e, it.d, dt, v.lp);
       v.wh.update(dt, e.kind === 'echo' ? (0.05 + 0.3 * al + 0.6 * ch) * e.op : 0);
     });
   }
@@ -5157,7 +5203,9 @@ function updateAudio(dt) {
   MUS.update(dt);
   if (C.active && C.gp.visible && !C.jump) {
     placePanner(S.cPan, C.x, 3, C.z);
-    voxTall(dt, Math.hypot(C.x - player.x, C.z - player.z));
+    const cd = Math.hypot(C.x - player.x, C.z - player.z);
+    S.cLP.frequency.setTargetAtTime(earLP(C.x, C.z, cd), AC.currentTime, 0.15);
+    voxTall(dt, cd);
     S.cWhisp.update(dt, C.freeze ? 0 : (C.mode === 'hunt' ? 0.45 : C.mode === 'alert' ? 0.2 : 0) * C.op);
   } else S.cWhisp.update(dt, 0);
   AMB.update(dt);
