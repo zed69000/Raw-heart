@@ -206,7 +206,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v23 · 24.10.2026</p>
+  <p class="ver" id="ver">v24 · 24.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -291,6 +291,8 @@ console.info('[Raw Heart] seed ' + RUN_SEED + ' (replay: ?seed=' + RUN_SEED + ')
 const vrnd = mulberry32(RUN_SEED), vr = (a, b) => a + (b - a) * vrnd();
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const TOUCH = matchMedia('(pointer: coarse)').matches && !matchMedia('(pointer: fine)').matches;
+/* Safari on iPhone and iPad runs Web Audio on a tight budget: lighter spatialisation, shorter reverb, fewer noise voices */
+const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 /* ---------- languages ---------- */
 /* Texts come from the "Raw Heart — Textes du jeu" doc (one tab per language), keyed by the doc's IDs. */
 const I18N = {"fr":{"prologue.kicker":"Prologue","prologue.title":"Le même rêve","prologue.p1":"Il y a trois semaines, elles sont parties : ma fille de six ans Justine, et sa mère.","prologue.p2":"Depuis, chaque nuit, je fais le même rêve. Un train qui m’emmène malgré moi, une forêt sans fin, et quelque chose qui me cherche dans le noir.","prologue.p3":"Je refuse d’y croire. Le déni !!!","prologue.obj":"I · Le Déni. Quand tu pourras bouger, lève-toi et rejoins la lanterne du quai le noir t’engloutit !","intro.far1":"« Je m’en… vais… »","intro.far2":"« On n’a pas le choix. »","intro.left":"Non… Attendez-moi !","deni.prompt":"<kbd>Espace</kbd> se lever","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> marcher · <kbd>Maj</kbd> courir","fuite.compass":"La boussole de nos aventures, avec ma fille. Elle n’indique pas le nord : elle indique la lumière, et elle s’éclaire quand je suis sur le bon chemin.","fuite.light":"Rester dans la lumière.","interlude.1":"04 h 12.","interlude.2":"Les draps sont trempés. Mon cœur cogne encore.","interlude.3":"Sur la table de nuit, l’écran du téléphone s’allume.","interlude.4":"« Je passe prendre ses affaires samedi. Ne rends pas ça plus dur. »","interlude.5":"Dans la chambre d’à côté..., le petit lit est fait. Personne ...","interlude.6":"Je ferme les yeux.","interlude.skip":"Espace · passer","tristesse.kicker":"II","tristesse.title":"La Tristesse","tristesse.p1":"Je me réveille à genoux sur le quai. Le train est reparti sans moi.","tristesse.p2":"Il fait noir. Quelque chose cogne dans ma poitrine. Trop fort.","tristesse.obj":"Retrouve trois souvenirs de Justine. La boussole indique le chemin. La lumière protège, mais elle ne dure jamais.","heart.1":"Le choc dans ma poitrine s’intensifie.","heart.2":"Je… je…","heart.prompt":"Maintenir <kbd>E</kbd> : arracher","heart.3":"Il bat dans ma main. Il éclaire.","heart.4":"Quand ils approchent, il s’affole.","girl.call":"— Attends !","beacon.label":"Balise {n} · {nom}","beacon.last":"Le quai suivant","site1.name":"La balançoire","memory1":"« Souris… Voilà. On la mettra sur le frigo. »","site2.name":"L’horloge arrêtée","memory2":"« Il est l’heure, ma puce. Papa revient samedi. »","site3.name":"Le petit lit","memory3":"« Tu le gardes, d’accord ? Pour quand je ne suis pas là. »","pickup.prompt":"<kbd>E</kbd> ramasser","creature.arrive":"Quelque chose vient. La cabine. Vite.","flare.prompt":"<kbd>Clic gauche</kbd> ou <kbd>R</kbd> : faire jaillir la lumière du cœur","hide.prompt":"Maintenir <kbd>clic droit</kbd> ou <kbd>F</kbd> : serrer le cœur contre soi","relight.prompt":"Maintenir <kbd>E</kbd> : rallumer la cabine avec le cœur","look.prompt":"<kbd>V</kbd> : regarder","hide.cine":"Mes mains serrent le cœur contre moi. Sa lumière s’étouffe.","hide.learn":"Il ne m’a pas vu. Serré contre moi, le cœur ne les attire plus.","hide.urge":"Le serrer contre moi. Vite.","deni.warn":"Le noir monte. Si je reste assis, il m’avale.","deni.again":"Encore ce noir. Me lever. Maintenant.","fuite.dark":"Le noir me rattrape. La lumière, vite.","fuite.swallowed":"Trop longtemps dans le noir.","train.locked":"Les portes restent fermées. Pas sans ses souvenirs.","train.count":"Souvenirs {n} / 3","train.open":"Le train. Les portes sont ouvertes.","phone.prompt":"<kbd>E</kbd> décrocher","phone.line":"… Il n’y a personne ici. Personne.","chute.1":"Je tombe. Encore.","chute.2":"Toujours le même rêve.","chute.3":"Je me relève. Il le faut.","chute.4":"Elles sont plus loin maintenant.","chute.prompt":"<kbd>Espace</kbd> se relever","giant.lift":"La lumière me soulève. Mes pieds quittent le sol.","giant.beam":"Sa lumière fouille la forêt. Rester dans l’ombre des arbres, des cabines.","giant.spotted":"Sa lumière m’a trouvé. Ils arrivent. Tous.","shadows.1":"Des silhouettes, dans la brume. Elles marchent sans moi.","shadows.2":"Celle-là s’est arrêtée. Elle me regarde.","giants.first":"Ils s’en vont. Tous. Avec leurs valises.","giants.look":"Il me regarde. Il ne s’arrête que pour me regarder.","final.start":"Plus le temps. La lumière, là-bas.","final.giant":"Elle aussi s’en va.","final.safe1":"Sauvé.","final.safe2":"Pour l’instant.","end.kicker":"Fin de la démo","end.thesis":"Déni · Tristesse. À suivre : Minimisation, Colère, Acceptation.","end.again":"Rejouer","title.kicker":"Prototype · Déni & Tristesse","title.thesis":"Trouver le chemin de sa reconstruction face aux démons qui nous hantent.","title.start":"Entrer","title.note":"Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.","keys.move":"ZQSD / WASD · se déplacer","keys.look":"Souris · regarder","keys.run":"Maj · courir","keys.act":"E / Espace · agir","keys.focus":"V · regarder ce qui apparaît","keys.flare":"Clic gauche / R · éclat du cœur, repousse le monstre","keys.hide":"Clic droit / F · serrer le cœur contre soi (maintenu)","card.skip":"Espace ou clic : passer la voix","card.next":"Espace ou clic : continuer","pause.title":"Pause","pause.resume":"Reprendre","touch.act":"Agir","touch.flare":"Éclat","touch.hide":"Serrer","touch.look":"Regarder","touch.rotate":"Tourne ton téléphone à l’horizontale.","ui.fullscreen":"Plein écran","ui.language":"Langue","heart.cine":"J’enfonce ma main dans ma poitrine.","warn.eyes":"Des yeux. Là, entre les arbres.","warn.seen":"Il m’a vu.","warn.pack":"Ils sont plusieurs… ils m’entourent.","warn.crawler":"Ne bouge plus. Surtout, ne bouge plus.","warn.echo":"Ce n’est pas sa voix.","warn.sheet":"Le grand. Il me cherche.","warn.light":"Non… pas encore. Elle s’éteint.","warn.dark":"Où est la lumière ? Où ?","warn.shelter":"Ici. Je retiens mon souffle.","warn.girl":"Justine… attends-moi.","odd.1":"Qui a fait ça ?","booth.dead":"Cabine éteinte · maintenir <kbd>E</kbd> pour la rallumer avec le cœur","map.prompt":"<kbd>E</kbd> consulter le plan","map.title":"Plan de la ligne","map.close":"<kbd>E</kbd> fermer","map.closeBtn":"Fermer","map.zoom":"pincer avec deux doigts pour zoomer","map.note1":"L’aiguillage, à l’écart du quai, libère la draisine.","map.note2":"La draisine est libre : elle suit les rails jusqu’au plus près de la balise.","map.station":"Quai","map.cart":"Draisine","map.lever":"Aiguillage","map.hut":"Abri","map.you":"Moi","lever.prompt":"Maintenir <kbd>E</kbd> : actionner l’aiguillage","lever.done":"L’aiguillage cède. La draisine est libre.","cart.locked":"La draisine est enchaînée. L’aiguillage est sur le plan.","cart.prompt":"<kbd>E</kbd> prendre la draisine","cart.far":"Les rails ne mènent pas plus près."},"en":{"prologue.kicker":"Prologue","prologue.title":"The Same Dream","prologue.p1":"Three weeks ago, they left: my six-year-old daughter Justine, and her mother.","prologue.p2":"Since then, every night, I have the same dream. A train that takes me away against my will, an endless forest, and something looking for me in the dark.","prologue.p3":"I refuse to believe it. Denial!!!","prologue.obj":"I · Denial. When you can move, stand up and reach the platform lantern, the dark swallows you!","intro.far1":"“I’m… leaving…”","intro.far2":"“We don’t have a choice.”","intro.left":"No… Wait for me!","deni.prompt":"<kbd>Space</kbd> stand up","fuite.prompt.move":"<kbd>ZQSD</kbd> / <kbd>WASD</kbd> walk · <kbd>Shift</kbd> run","fuite.compass":"The compass from our adventures, my daughter and me. It doesn’t point north: it points to the light, and it glows when I’m on the right path.","fuite.light":"Stay in the light.","interlude.1":"4:12 a.m.","interlude.2":"The sheets are soaked. My heart is still pounding.","interlude.3":"On the nightstand, the phone screen lights up.","interlude.4":"“I’ll pick up her things on Saturday. Don’t make this harder.”","interlude.5":"In the next room..., the little bed is made. No one ...","interlude.6":"I close my eyes.","interlude.skip":"Space · skip","tristesse.kicker":"II","tristesse.title":"Sadness","tristesse.p1":"I wake up on my knees on the platform. The train left without me.","tristesse.p2":"It’s dark. Something is pounding in my chest. Too hard.","tristesse.obj":"Find three memories of Justine. The compass shows the way. Light protects you, but it never lasts.","heart.1":"The pounding in my chest gets worse.","heart.2":"I… I…","heart.prompt":"Hold <kbd>E</kbd>: tear it out","heart.3":"It beats in my hand. It gives light.","heart.4":"When they come near, it races.","girl.call":"— Wait!","beacon.label":"Beacon {n} · {name}","beacon.last":"The next platform","site1.name":"The swing","memory1":"“Smile… There. We’ll put it on the fridge.”","site2.name":"The stopped clock","memory2":"“It’s time, sweetheart. Daddy will be back on Saturday.”","site3.name":"The little bed","memory3":"“You keep him, okay? For when I’m not there.”","pickup.prompt":"<kbd>E</kbd> pick up","creature.arrive":"Something’s coming. The booth. Quick.","flare.prompt":"<kbd>Left click</kbd> or <kbd>R</kbd>: make your heart flare","hide.prompt":"Hold <kbd>right click</kbd> or <kbd>F</kbd>: hold your heart close","relight.prompt":"Hold <kbd>E</kbd>: relight the booth with your heart","look.prompt":"<kbd>V</kbd>: look","hide.cine":"My hands press the heart against me. Its light chokes.","hide.learn":"It didn’t see me. Held close, the heart no longer draws them.","hide.urge":"Hold it close. Now.","deni.warn":"The dark is rising. If I stay seated, it swallows me.","deni.again":"That dark again. Stand up. Now.","fuite.dark":"The dark is catching up. The light, quick.","fuite.swallowed":"Too long in the dark.","train.locked":"The doors stay shut. Not without her memories.","train.count":"Memories {n} / 3","train.open":"The train. The doors are open.","phone.prompt":"<kbd>E</kbd> pick up","phone.line":"… There’s no one here. No one.","chute.1":"I’m falling. Again.","chute.2":"Always the same dream.","chute.3":"I get up. I have to.","chute.4":"They’re further away now.","chute.prompt":"<kbd>Space</kbd> get up","giant.lift":"The light lifts me. My feet leave the ground.","giant.beam":"Its light is searching the forest. Stay in the shadow of the trees, the booths.","giant.spotted":"Its light found me. They’re coming. All of them.","shadows.1":"Figures, in the mist. They walk on without me.","shadows.2":"That one stopped. It’s looking at me.","giants.first":"They’re leaving. All of them. With their suitcases.","giants.look":"He’s looking at me. He only stops to look at me.","final.start":"No time left. The light, over there.","final.giant":"She’s leaving too.","final.safe1":"Safe.","final.safe2":"For now.","end.kicker":"End of the demo","end.thesis":"Denial · Sadness. Coming next: Minimizing, Anger, Acceptance.","end.again":"Play again","title.kicker":"Prototype · Denial & Sadness","title.thesis":"Finding the way to rebuild yourself against the demons that haunt us.","title.start":"Enter","title.note":"Headphones recommended. About 15 minutes. Esc to pause.","keys.move":"ZQSD / WASD · move","keys.look":"Mouse · look","keys.run":"Shift · run","keys.act":"E / Space · interact","keys.focus":"V · look at what appears","keys.flare":"Left click / R · heart flare, drives the monster back","keys.hide":"Right click / F · hold your heart close (hold)","card.skip":"Space or click: skip the voice","card.next":"Space or click: continue","pause.title":"Paused","pause.resume":"Resume","touch.act":"Act","touch.flare":"Flare","touch.hide":"Clutch","touch.look":"Look","touch.rotate":"Turn your phone sideways.","ui.fullscreen":"Fullscreen","ui.language":"Language","heart.cine":"I push my hand into my chest.","warn.eyes":"Eyes. There, between the trees.","warn.seen":"It saw me.","warn.pack":"There’s more of them… they’re closing in.","warn.crawler":"Don’t move. Whatever you do, don’t move.","warn.echo":"That’s not her voice.","warn.sheet":"The tall one. It’s looking for me.","warn.light":"No… not yet. It’s going out.","warn.dark":"Where’s the light? Where?","warn.shelter":"In here. I hold my breath.","warn.girl":"Justine… wait for me.","odd.1":"Who made this?","booth.dead":"Dead booth · hold <kbd>E</kbd> to relight it with your heart","map.prompt":"<kbd>E</kbd> read the map","map.title":"Line map","map.close":"<kbd>E</kbd> close","map.closeBtn":"Close","map.zoom":"pinch with two fingers to zoom","map.note1":"The switch, off the platform, frees the handcar.","map.note2":"The handcar is free: it follows the rails to the point nearest the beacon.","map.station":"Platform","map.cart":"Handcar","map.lever":"Switch","map.hut":"Shelter","map.you":"Me","lever.prompt":"Hold <kbd>E</kbd>: throw the switch","lever.done":"The switch gives. The handcar is free.","cart.locked":"The handcar is chained. The switch is on the map.","cart.prompt":"<kbd>E</kbd> ride the handcar","cart.far":"The rails don’t go any closer."}};
@@ -637,7 +639,7 @@ function g(v, dest) { const n = AC.createGain(); n.gain.value = v; if (dest) n.c
 function setG(node, v, tc = 0.15) { node.gain.setTargetAtTime(v, AC.currentTime, tc); }
 function biq(type, f, q = 1) { const b = AC.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
 function loopNoise(buf) { const s = AC.createBufferSource(); s.buffer = buf; s.loop = true; s.start(0, Math.random() * buf.duration * 0.9); return s; }
-function panner(ref = 3) { return new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: ref, maxDistance: 160, rolloffFactor: 1.6 }); }
+function panner(ref = 3) { return new PannerNode(AC, { panningModel: IOS ? 'equalpower' : 'HRTF', distanceModel: 'inverse', refDistance: ref, maxDistance: 160, rolloffFactor: 1.6 }); }
 function placePanner(pn, x, y, z) { if (pn.positionX) { pn.positionX.value = x; pn.positionY.value = y; pn.positionZ.value = z; } else pn.setPosition(x, y, z); }
 
 /* Breathy whispers: pink-ish noise through two moving formants, kept below 2 kHz so they murmur rather than hiss. */
@@ -706,7 +708,7 @@ function initAudio() {
   S.master = g(0.85, air);
   S.lp = biq('lowpass', 12000, 0.7); S.lp.connect(S.master);
   S.world = g(1, S.lp);
-  S.rev = AC.createConvolver(); S.rev.buffer = impulse(3.6, 2.6);
+  S.rev = AC.createConvolver(); S.rev.buffer = impulse(IOS ? 2.2 : 3.6, 2.6);
   S.revOut = g(0.5, S.master); S.rev.connect(S.revOut);
   S.send = g(1, S.rev);
   S.world.connect(g(0.15, S.rev));
@@ -722,10 +724,10 @@ function initAudio() {
   S.tinn = g(0, S.master); const to = AC.createOscillator(); to.frequency.value = 3900; to.connect(g(0.4)).connect(S.tinn); to.start();
   S.rain = g(0, S.world); loopNoise(S.pink).connect(biq('highpass', 900)).connect(biq('lowpass', 4200)).connect(S.rain);
   S.hum = g(0, S.world); for (const f of [50, 100]) { const o = AC.createOscillator(); o.frequency.value = f; o.connect(S.hum); o.start(); }
-  S.whisp = new Whispers(S.world, 4, true, 3);
+  S.whisp = new Whispers(S.world, IOS ? 2 : 4, true, IOS ? 4.5 : 3);
 
   S.cPan = panner(4); S.cPan.connect(S.world); S.cPan.connect(g(0.35, S.rev));
-  S.cWhisp = new Whispers(S.cPan, 3, false, 4);
+  S.cWhisp = new Whispers(S.cPan, IOS ? 2 : 3, false, IOS ? 5 : 4);
   S.chimePan = panner(5); S.chimePan.connect(S.world); S.chimePan.connect(g(0.6, S.rev));
   S.gPan = panner(2); S.gPan.connect(S.world); S.gPan.connect(g(0.3, S.rev));
   S.humPan = panner(6); S.humPan.connect(S.world); S.humPan.connect(g(0.9, S.rev));
@@ -734,9 +736,9 @@ function initAudio() {
   loopNoise(S.brown).connect(biq('bandpass', 950, 0.9)).connect(S.breathM).connect(S.breath);
   S.breathLfo = AC.createOscillator(); S.breathLfo.frequency.value = 0.6; S.breathLfo.connect(g(0.85)).connect(S.breathM.gain); S.breathLfo.start();
   S.mv = [0, 1, 2, 3, 4, 5].map(() => {
-    const pn = new PannerNode(AC, { panningModel: 'HRTF', distanceModel: 'inverse', refDistance: 2.5, maxDistance: 60, rolloffFactor: 1.35 });
+    const pn = new PannerNode(AC, { panningModel: IOS ? 'equalpower' : 'HRTF', distanceModel: 'inverse', refDistance: 2.5, maxDistance: 60, rolloffFactor: 1.35 });
     pn.connect(S.world); pn.connect(g(0.22, S.rev));
-    return { pn, wh: new Whispers(pn, 2, false, 2.4) };
+    return { pn, wh: new Whispers(pn, 1, false, 3.4) };
   });
   S.shape = distCurve(5);
   AMB.init();
@@ -946,7 +948,7 @@ const AMB = {
   init() {
     this.bus = g(0, S.world);
     /* insects are filtered noise, not tones: a dry rasp in a narrow band, pulsed and irregular */
-    this.bugs = [4300, 5200, 3600].map((f, i) => {
+    this.bugs = (IOS ? [4300, 3600] : [4300, 5200, 3600]).map((f, i) => {
       const src = loopNoise(S.white), bp = biq('bandpass', f, 9), bp2 = biq('bandpass', f * 1.5, 7);
       const am = g(0.5), lfo = AC.createOscillator(); lfo.type = 'triangle'; lfo.frequency.value = mr(38, 60);
       lfo.connect(g(0.5)).connect(am.gain);
@@ -1542,8 +1544,7 @@ const wagonLamp = (() => {
   const bulb = glowSprite(0.9, 0xfff0cf, 0.9); bulb.position.set(0, 2.38, 1.8); wagon.add(bulb);
   const light = new THREE.PointLight(0xf3dcb0, 1.6, 7.5, 1.4); light.position.set(0, 2.25, 1.6); wagon.add(light);
   scene.add(wagon);
-  /* the light is taken out of the scene once the car has gone dark for good, so it costs nothing afterwards */
-  return { set(k) { light.intensity = 1.6 * k; bulb.material.opacity = 0.9 * k; }, off() { this.set(0); light.visible = false; } };
+  return { set(k) { light.intensity = 1.6 * k; bulb.material.opacity = 0.9 * k; }, off() { this.set(0); } };
 })();
 
 /* The train that left without him: an engine and two coaches with lit windows. It pulls away in the opening,
@@ -5046,7 +5047,7 @@ function updateWorld(dt) {
   if (W.trainLeaving) {
     W.trainV = Math.min(9, W.trainV + 1.4 * dt);
     train.gp.position.z -= W.trainV * dt;
-    if (train.gp.position.z < -150) { W.trainLeaving = false; train.gp.visible = false; W.girlInTrain = false; train.balc.visible = false; }
+    if (train.gp.position.z < -150) { W.trainLeaving = false; train.gp.visible = false; W.girlInTrain = false; }
   }
   if (STR.on || STR.list.some(s => s.op > 0.01)) updateStrollers(dt);
   if ((state === 'deni' || state === 'intro') && W.wagonMoving) {
@@ -5215,6 +5216,14 @@ scene.traverse(o => {
     Object.assign(m, { blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor });
 });
 updateCamera(0);
+/* every material is compiled once behind the title screen, so nothing stalls the first time it shows up;
+   lights keep their state, since the light count is part of each compiled program */
+{
+  const hidden = [];
+  scene.traverse(o => { if (!o.visible && !o.isLight) { hidden.push(o); o.visible = true; } });
+  renderer.setRenderTarget(rt); renderer.compile(scene, camera); renderer.setRenderTarget(null);
+  for (const o of hidden) o.visible = false;
+}
 requestAnimationFrame(frame);
 
 /* ---------- touch controls ---------- */
@@ -5346,6 +5355,20 @@ $('start').addEventListener('click', async () => {
   run();
 });
 $('again').addEventListener('click', () => location.reload());
+
+/* Frame counter (?fps): frames per second and the slowest frame of the last half second, top left */
+if (/[?&]fps(&|$)/.test(location.search)) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:8px;top:8px;z-index:99;font:600 13px ui-monospace,monospace;color:#eeeae0;background:#050606cc;padding:4px 7px;border-radius:3px;pointer-events:none';
+  document.body.appendChild(el);
+  let n = 0, worst = 0, t0 = performance.now(), prev = t0;
+  const tickF = now => {
+    n++; worst = Math.max(worst, now - prev); prev = now;
+    if (now - t0 > 500) { el.textContent = `${Math.round(n * 1000 / (now - t0))} img/s · pire ${Math.round(worst)} ms`; n = 0; worst = 0; t0 = now; }
+    requestAnimationFrame(tickF);
+  };
+  requestAnimationFrame(tickF);
+}
 
 /* Sound check page (?sons): every creature, forest and music sound on its own button, to judge them by ear. */
 if (/[?&]sons\b/.test(location.search)) {
