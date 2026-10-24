@@ -224,7 +224,7 @@ body.touch #prompt{bottom:calc(40% + env(safe-area-inset-bottom,0px))}
   </div>
   <button id="start" type="button">Entrer</button>
   <p class="note" id="note">Casque recommandé. Environ 15 minutes. Échap pour mettre en pause.</p>
-  <p class="ver" id="ver">v25 · 24.10.2026</p>
+  <p class="ver" id="ver">v26 · 24.10.2026</p>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -2530,7 +2530,12 @@ const girl = (() => {
   arm(new THREE.Vector3(-0.42, 1.42, 0), hand);
   const halo = glowSprite(3.4, 0xffd9a0, 0); halo.position.set(-0.26, 0.95, 0); gp.add(halo);
   gp.visible = false; scene.add(gp);
-  return { gp, mat, halo, legs, op: 0, active: false, x: 0, z: 0, dx: 0, dz: 0, t: 0 };
+  /* the two of them as drawn in the concept art, seen from behind, shown instead of the modelled figures */
+  const sm = new THREE.SpriteMaterial({ map: new THREE.TextureLoader().load('pair.webp'), transparent: true, opacity: 0, fog: false, depthWrite: false, alphaTest: 0.05,
+    blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.ZeroFactor });
+  const sprite = new THREE.Sprite(sm); sprite.scale.set(1.25, 1.85, 1); sprite.position.set(-0.26, 0.92, 0); gp.add(sprite);
+  gp.traverse(o => { if (o.isMesh) o.visible = false; });
+  return { gp, mat, halo, legs, sprite, op: 0, active: false, x: 0, z: 0, dx: 0, dz: 0, t: 0 };
 })();
 
 /* Ghost shapes from the concept board: a tall sheet, a small round ghost and a flat crawler with spikes.
@@ -3993,6 +3998,7 @@ function updateGirl(dt) {
   }
   girl.walk = (girl.walk || 0) + dt * (0.6 + sp * 1.4);
   girl.mat.opacity = girl.op;
+  girl.sprite.material.opacity = girl.op;
   girl.halo.material.opacity = 0.32 * girl.op;
   girl.gp.visible = girl.op > 0.01;
   girl.gp.position.set(girl.x, (W.girlInTrain ? 1.02 : groundH(girl.x, girl.z)) + (sp > 0 ? Math.abs(Math.sin(girl.walk * 3)) * 0.03 : 0), girl.z);
